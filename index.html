@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asian Snacks & Treats Collection</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.95;
+        }
+
+        .filter-section {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .filter-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .filter-btn {
+            padding: 10px 20px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .snacks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .snack-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .snack-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        .snack-image {
+            width: 100%;
+            height: 250px;
+            object-fit: contain;
+            background: #f5f5f5;
+        }
+
+        .snack-content {
+            padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .snack-title {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .snack-origin {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .snack-description {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            font-style: italic;
+            flex-grow: 1;
+        }
+
+        .allergy-section {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px;
+            margin-top: 15px;
+            border-radius: 5px;
+        }
+
+        .allergy-section.safe {
+            background: #d4edda;
+            border-left-color: #28a745;
+        }
+
+        .allergy-section.high-risk {
+            background: #f8d7da;
+            border-left-color: #dc3545;
+        }
+
+        .allergy-title {
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .allergy-list {
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .allergen-tag {
+            display: inline-block;
+            background: #ff6b6b;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            margin: 2px;
+            font-weight: 600;
+        }
+
+        footer {
+            text-align: center;
+            color: white;
+            padding: 30px 0;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .snacks-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: space-around;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🍬 Asian Snacks & Treats Collection</h1>
+            <p class="subtitle">A curated collection of delicious snacks from across Asia</p>
+        </header>
+
+        <div class="stats-bar">
+            <div class="stat-item">
+                <div class="stat-number">14</div>
+                <div class="stat-label">Total Items</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">8</div>
+                <div class="stat-label">Countries</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">6</div>
+                <div class="stat-label">Categories</div>
+            </div>
+        </div>
+
+        <div class="filter-section">
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">All Items</button>
+                <button class="filter-btn" data-filter="china">🇨🇳 China</button>
+                <button class="filter-btn" data-filter="japan">🇯🇵 Japan</button>
+                <button class="filter-btn" data-filter="korea">🇰🇷 Korea</button>
+                <button class="filter-btn" data-filter="india">🇮🇳 India</button>
+                <button class="filter-btn" data-filter="thailand">🇹🇭 Thailand</button>
+                <button class="filter-btn" data-filter="uae">🇦🇪 UAE</button>
+            </div>
+        </div>
+
+        <div class="snacks-grid" id="snacksGrid">
+            <!-- BIN-BIN Rice Cracker -->
+            <div class="snack-card" data-country="china">
+                <img src="images/binbin-rice-cracker.jpg" alt="BIN-BIN Rice Cracker" class="snack-image">
+                <div class="snack-content">
+                    <h2 class="snack-title">BIN-BIN Rice Cracker (米果)</h2>
+                    <span class="snack-origin">🇨🇳 China</span>
+                    <p class="snack-description">A beloved Chinese rice cracker snack enjoyed by children and adults alike, featuring crispy texture and savory flavors that have made it a staple in Chinese households for decades.</p>
+                    <div class="allergy-section safe">
+                        <div class="allergy-title">⚠️ Allergy Information:</div>
+                        <div class="allergy-list">
+                            <span class="allergen-tag">Gluten-Free</span>
+                            May contain: Soy
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ousi Tamarind Candy -->
+            <div class="snack-card" data-country="thailand">
+                <img src="images/ojs-tamarind.jpg" alt="Ousi Tamarind Candy" class="snack-image">
+                <div class="snack-content">
+                    <h2 class="snack-title">Ousi Tamarind Candy</h2>
+                    <span class="snack-origin">🇹🇭 Thailand</span>
+                    <p class="snack-description">Thailand's iconic sweet-and-sour tamarind candy is a cultural favorite, blending tropical tamarind fruit with sugar for a uniquely tangy treat enjoyed throughout Southeast Asia.</p>
+                    <div class="allergy-section safe">
+                        <div class="allergy-title">⚠️ Allergy Information:</div>
+                        <div class="allergy-list">Generally safe for most allergens. May contain: Sulfites (preservative)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hello Panda -->
+            <div class="snack-card" data-country="japan">
+                <img src="images/hello-panda-vanilla.jpg" alt="Meiji Hello Panda" class="snack-image">
+                <div class="snack-content">
+                    <h2 class="snack-title">Meiji Hello Panda</h2>
+                    <span class="snack-origin">🇯🇵 Japan</span>
+                    <p class="snack-description">Meiji's internationally beloved cookie features cute panda designs and creamy vanilla filling, making it one of Japan's most exported snack brands since 1979.</p>
+                    <div class="allergy-section high-risk">
+                        <div class="allergy-title">⚠️ Allergy Information:</div>
+                        <div class="allergy-list">
+                            <span class="allergen-tag">Wheat</span>
+                            <span class="allergen-tag">Milk</span>
+                            <span class="allergen-tag">Soy</span>
+                            May contain: Eggs, Tree Nuts
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fruitasy Plum Candy -->
+            <div class="snack-card" data-country="china">
+                <img src="images/fruitasy-plum.jpg" alt="Fruitasy Plum Candy" class="snack-image">
+                <div class="snack-content">
+                    <h2 class="snack-title">Fruitasy Plum Candy (串心梅)</h2>
+                    <span class="snack-origin">🇨🇳 China</span>
+                    <p class="snack-description">Preserved plum snacks are deeply rooted in Chinese cuisine and traditional medicine, prized for their digestive benefits and sweet-sour-salty flavor profile unique to Asian confections.</p>
+                    <div class="allergy-section">
+                        <div class="allergy-title">⚠️ Allergy Information:</div>
+                        <div class="allergy-list">
+                            Generally safe. May contain: Sulfites, high sodium content
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vita Lemon Tea -->
+            <div class="snack-card" data-country="china">
+                <img src="images/vita-lemon-tea.jpg" alt="Vita Lemon Tea" class="snack-image">
+                <div class="snack-content">
+                    <h2 class="snack-title">Vita Lemon Tea (維他檸檬茶)</h2>
+                    <span class="snack-origin">🇨🇳 Hong Kong</span>
+                    <p class="snack-description">Hong Kong's quintessential beverage since 1979, Vita Lemon Tea is synonymous with local culture and café-style lemon tea, enjoyed daily by millions across Asia.</p>
+                    <div class="allergy-section safe">
+                        <div class="allergy-title">⚠️ Allergy Information:</div>
+                        <div class="allergy-list">Allergen-free. Contains: Caffeine, Sugar</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Korean Seaweed -->
+            <div class="snack-card" data-country="korea">
+                <img src="images/korean-seaweed.jpg" alt="Korean Roasted Seaweed" class="snack-image">
+                <div class="snack-content">
+                    <h2 class="snack-title">Roasted Seaweed with Olive Oil (김)</h2>
+                    <span class="snack-origin">🇰🇷 Korea</span>
+                    <p class="snack-description">Korean roasted seaweed (gim) is a nutritional powerhouse and cultural staple, traditionally served at celebrations and enjoyed as a healthy everyday snack throughout Korea.</p>
+                    <div class="allergy-section">
+                        <div class="allergy-title">⚠️ Allergy Information:</div>
+                        <div class="allergy-list">
+                            <span class="allergen-tag">Seaweed/Iodine</span>
+                            May contain: Shellfish (cross-contamination), high sodium
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mama Instant Noodles -->
+            <div class="snack-card" data-country="thailand">
+                <img src="images/mama-tom-yum.jpg" alt="Mama Instant Noodles" class="snack-image">
+                <div class="snack-content">
+                    <h2 class="snack-title">Mama Shrimp Tom Yum Noodles</h2>
+                    <span class="snack-origin">🇹🇭 Thailand</span>
+                    <p class="snack-description">Mama is Thailand's national instant noodle brand since 1972, with Tom Yum flavor capturing the essence of Thailand's most famous soup in convenient form.</p>
+                    <div class="allergy-section high-risk">
+                        <div class="allergy-title">⚠️ Allergy Information:</div>
+                        <div class="allergy-list">
+                            <span class="allergen-tag">Wheat/Gluten</span>
+                            <span class="allergen-tag">Shellfish</span>
+                            <span class="allergen-tag">Soy</span>
+                            May contain: Fish, Eggs, MSG
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Choco Pie -->
+            <div class="snack-card" data-country="korea">
+                <img src="images/lotte-choco-pie.jpg" alt="Lotte Choco Pie" class="snack-image">
+                <div class="snack-content">
+                    <h2 class="snack-title">Lotte Choco Pie</h2>
+                    <span class="snack-origin">🇰🇷 Korea</span>
+                    <p class="snack-description">A Korean cultural icon since 1974, Choco Pie represents warmth and affection in Korean culture, often given as gifts and exported to over 60 countries worldwide.</p>
+                    <div class="allergy-section high-risk">
+                        <div class="allergy-title">⚠️ Allergy Information:</div>
+                        <div class="allergy-list">
+                            <span class="allergen-tag">Wheat</span>
+                            <span class="allergen-tag">Eggs</span>
+                            <span class="allergen-tag">Milk</span>
+                            <span class="allergen-tag">Soy</span>
+                            May contain: Tree Nuts
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kopiko Coffee Candy -->
+            <div class="snack-card" data-country="indonesia">
+                <img src="images/kopiko-coffee.jpg" alt="Kopiko Coffee Candy" class="snack-image">
+                <div class="snack-content">
+                    <h2 class="snack-title">Kopiko Coffee Candy</h2>
+                    <span class="snack-origin">🇮🇩 Indonesia</span>
+                    <p class="snack-description">Indonesia's famous coffee candy contains real coffee extract, reflecting the country's strong coffee culture and providing a quick caffeine boost in candy form since 1982.</p>
+                    <div class="allergy-section">
+                        <div class="allergy-title">⚠️ Allergy Information:</div>
+                        <div class="allergy-list">
+                            <span class="allergen-tag">Milk</span>
+                            Contains: Caffeine (equivalent to 1/4 cup of coffee per 4 candies)
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Binggrae Milk -->
+            <div class="snack-card" data-country="korea">
+                <img src="images/binggrae-banana-milk.jpg" alt="Binggrae Milk" class="snack-image">
+                <div class="snack-content">
+                    <h2 class="snack-title">Binggrae Milk (빙그레 우유)</h2>
+                    <span class="snack-origin">🇰🇷 Korea</span>
+                    <p class="snack-description">Launched in 1974, Binggrae flavored milk became Korea's most beloved drink with its distinctive bottle shape and nostalgic sweet taste. Available in various flavors including banana, strawberry, and melon.</p>
+                    <div class="allergy-section">
+                        <div class="allergy-title">⚠️ Allergy Information:</div>
+                        <div class="allergy-list">
+                            <span class="allergen-tag">Milk</span>
+                            Contains: Artificial flavoring
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Parle-G -->
+            <div class="snack-card" data-country="india">
+                <img src="images/parle-g.jpg" alt="Parle-G Cookies" class="snack-image">
+                <div class="snack-content">
+                    <h2 class="snack-title">Parle-G Original Gluco Cookies</h2>
+                    <span class="snack-origin">🇮🇳 India</span>
+                    <p class="snack-description">India's most iconic biscuit since 1939, Parle-G is a household staple consumed with tea across all socioeconomic levels, selling billions of packets annually.</p>
+                    <div class="allergy-section">
+                        <div class="allergy-title">⚠️ Allergy Information:</div>
+                        <div class="allergy-list">
+                            <span class="allergen-tag">Wheat</span>
+                            <span class="allergen-tag">Milk</span>
+                            May contain: Soy
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mango Bite -->
+            <div class="snack-card" data-country="india">
+                <img src="images/parle-mango-bite.jpg" alt="Parle Mango Bite" class="snack-image">
+                <div class="snack-content">
+                    <h2 class="snack-title">Parle Kaccha Mango Bite</h2>
+                    <span class="snack-origin">🇮🇳 India</span>
+                    <p class="snack-description">Capturing India's love for mangoes, this chewy candy has been a childhood favorite since the 1980s, celebrating the country's status as the world's largest mango producer.</p>
+                    <div class="allergy-section safe">
+                        <div class="allergy-title">⚠️ Allergy Information:</div>
+                        <div class="allergy-list">
+                            <span class="allergen-tag">Milk</span>
+                            Generally safe. Contains: Artificial flavoring, colors
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hong Yuan Guava Candy -->
+            <div class="snack-card" data-country="taiwan">
+                <img src="images/chinese-milk-candy.jpg" alt="Hong Yuan Guava Classic Hard Candy" class="snack-image">
+                <div class="snack-content">
+                    <h2 class="snack-title">Hong Yuan Guava Classic Hard Candy</h2>
+                    <span class="snack-origin">🇹🇼 Taiwan</span>
+                    <p class="snack-description">A beloved Taiwanese hard candy featuring the sweet and tangy flavor of guava fruit. Hong Yuan's classic guava candy has been a popular treat across Asia for decades.</p>
+                    <div class="allergy-section safe">
+                        <div class="allergy-title">⚠️ Allergy Information:</div>
+                        <div class="allergy-list">Generally safe. May contain: Artificial flavoring, colors</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fiorella Dubai Chocolate -->
+            <div class="snack-card" data-country="uae">
+                <img src="images/fiorella-dubai-chocolate.jpg" alt="Fiorella Dubai Chocolate" class="snack-image">
+                <div class="snack-content">
+                    <h2 class="snack-title">Fiorella Dubai Chocolate</h2>
+                    <span class="snack-origin">🇦🇪 UAE</span>
+                    <p class="snack-description">Premium Turkish-origin chocolate brand popular in the UAE, representing the region's growing confectionery market and cosmopolitan taste preferences.</p>
+                    <div class="allergy-section high-risk">
+                        <div class="allergy-title">⚠️ Allergy Information:</div>
+                        <div class="allergy-list">
+                            <span class="allergen-tag">Milk</span>
+                            <span class="allergen-tag">Soy</span>
+                            <span class="allergen-tag">Tree Nuts</span>
+                            <span class="allergen-tag">Wheat</span>
+                            May contain: Eggs
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <footer>
+            <p>&copy; 2026 Asian Snacks Collection | Allergy information is provided as a guide - always check product packaging</p>
+        </footer>
+    </div>
+
+    <script>
+        // Filter functionality
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const snackCards = document.querySelectorAll('.snack-card');
+
+        filterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Remove active class from all buttons
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                // Add active class to clicked button
+                button.classList.add('active');
+
+                const filter = button.getAttribute('data-filter');
+
+                snackCards.forEach(card => {
+                    if (filter === 'all') {
+                        card.style.display = 'flex';
+                    } else {
+                        const country = card.getAttribute('data-country');
+                        if (country === filter) {
+                            card.style.display = 'flex';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
