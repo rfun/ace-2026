@@ -5,6 +5,17 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>LNY Scratch Cards</title>
+    <!-- GitHub Pages SPA redirect handler -->
+    <script>
+      // Check if we're being redirected from a 404
+      (function() {
+        var redirect = sessionStorage.redirect;
+        delete sessionStorage.redirect;
+        if (redirect && redirect != location.href) {
+          history.replaceState(null, null, redirect);
+        }
+      })();
+    </script>
     <script type="module" crossorigin src="/ace-2026/lny_scratch_cards/assets/index-Dthq61R0.js"></script>
     <link rel="stylesheet" crossorigin href="/ace-2026/lny_scratch_cards/assets/index-DF-ZZSw-.css">
   </head>

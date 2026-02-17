@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>LNY Scratch Cards</title>
+    <script>
+      // GitHub Pages SPA redirect handler for 404s
+      // Saves the current URL and redirects to index.html
+      sessionStorage.redirect = location.href;
+
+      // Redirect to the index page
+      // For /ace-2026/lny_scratch_cards/admin, redirect to /ace-2026/lny_scratch_cards/
+      var pathSegmentsToKeep = 2; // Keep /ace-2026/lny_scratch_cards
+      var l = window.location;
+      var indexUrl = l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+        l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/';
+
+      location.replace(indexUrl);
+    </script>
+  </head>
+  <body>
+  </body>
+</html>
