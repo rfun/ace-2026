@@ -78,9 +78,10 @@ p { margin: 0 0 14px; }
 
 .intro-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 48px; align-items: center; }
 .facts { display: grid; gap: 14px; }
-.fact { display: flex; gap: 16px; align-items: baseline; padding: 16px 20px; border-radius: 16px; background: var(--card); border: 1px solid var(--card-line); }
-.fact b { font-family: var(--display); font-weight: 400; color: var(--gold); font-size: 30px; line-height: 1; min-width: 92px; }
-.fact span { color: var(--muted); font-size: 15px; line-height: 1.45; }
+.facts { grid-template-columns: 1fr; }
+.fact { padding: 20px 24px 18px; border-radius: 16px; background: var(--card); border: 1px solid var(--card-line); }
+.fact b { display: block; font-family: var(--display); font-weight: 400; color: var(--gold); font-size: 44px; line-height: 1; text-shadow: 0 0 18px rgba(247,162,27,.35); }
+.fact span { display: block; margin-top: 8px; color: var(--cream); font-size: 17px; line-height: 1.4; }
 
 .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 20px; margin-top: 28px; }
 .card { position: relative; padding: 26px 24px 22px; border-radius: 20px; background: var(--card); border: 1px solid var(--card-line); overflow: hidden; }
