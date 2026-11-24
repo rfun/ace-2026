@@ -78,3 +78,19 @@
   .cp-title { font-size: 30px; line-height: 38px; }
   .cp-actions .btn { flex: 1 1 100%; }
 }
+
+/* Import a recipe: a blank index card laid over the top of the form. */
+.cp-ground .cp-import-open { margin: 8px 0 0; }
+.cp-ground .cp-importmsg { margin: 8px 0 0; }
+.cp-ground .cp-importmsg:empty { margin: 0; }
+.cp-ground .cp-import { margin: 8px 32px 20px 64px; padding: 16px 20px 20px; background: var(--card); border: 2px solid var(--rule); border-radius: 4px; }
+.cp-ground .cp-import-ask { display: block; font: 400 18px/28px var(--font-read); margin: 12px 0 6px; }
+.cp-ground .cp-import-text { min-height: 176px; font-size: 18px; line-height: 28px; }
+.cp-ground .cp-import-photo { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin: 8px 0 12px; }
+.cp-ground .cp-import-file { font: 400 17px/24px var(--font-read); overflow-wrap: anywhere; }
+.cp-ground .cp-import .cp-actions { margin-top: 12px; }
+.cp-ground .cp-input::placeholder { color: var(--ink-soft); opacity: 1; }
+@media (max-width: 600px) {
+  .cp-ground .cp-import { margin: 8px 16px 16px 16px; padding: 14px 14px 16px; }
+  .cp-ground .cp-import .cp-actions .btn { flex: 1 1 100%; }
+}

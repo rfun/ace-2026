@@ -4,6 +4,7 @@ import { formatHash, navigate } from '../../app/router';
 import { useStore } from '../../data/StoreProvider';
 import { COURSES, DIETARY } from '../../domain/tags';
 import type { Course, DietaryTag, Me, Recipe } from '../../domain/types';
+import type { ImportedBy, ImportedRecipe } from '../../lib/import';
 import { ImageTooLargeError, resizeImage } from '../../lib/image/resize';
 import {
   blankForm,
@@ -18,6 +19,9 @@ import {
   validate,
 } from './form';
 import type { Errors, FormState, PhotoSlot } from './form';
+import ImportPanel, { BY_LINE } from './ImportPanel';
+import { appendIngredients, appendSteps, describeFilled, mergeImported } from './importMerge';
+import type { PendingLists } from './importMerge';
 import './compose.css';
 
 type Loaded =
@@ -159,6 +163,8 @@ function Rowtools(props: { what: string; index: number; count: number; onMove: (
   );
 }
 
+const blankText = (s: string) => s.trim().length === 0;
+
 function moved<T>(list: T[], from: number, dir: -1 | 1): T[] {
   const to = from + dir;
   if (to < 0 || to >= list.length) return list;
@@ -169,13 +175,14 @@ function moved<T>(list: T[], from: number, dir: -1 | 1): T[] {
 
 function TextField(props: {
   id: string; label: string; value: string; required?: boolean; hint?: string; multiline?: boolean; errors: Errors;
-  inputMode?: 'numeric'; onChange: (v: string) => void; className?: string;
+  inputMode?: 'numeric'; onChange: (v: string) => void; className?: string; placeholder?: string;
 }): JSX.Element {
   const common = {
     id: props.id,
     value: props.value,
     onChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => props.onChange(e.target.value),
     'aria-required': props.required ? ('true' as const) : undefined,
+    placeholder: props.placeholder,
     ...errProps(props.id, props.errors, props.hint ? `${props.id}-hint` : undefined),
   };
   return (
@@ -208,6 +215,10 @@ export default function ComposePage(props: { id?: string }): JSX.Element {
   const [restored, setRestored] = useState(false);
   const summaryRef = useRef<HTMLDivElement>(null);
   const skipPersist = useRef(false);
+  const [importOpen, setImportOpen] = useState(false);
+  const [importNote, setImportNote] = useState<{ summary: string; by?: ImportedBy } | null>(null);
+  const [pending, setPending] = useState<PendingLists>({});
+  const [focusTick, setFocusTick] = useState(0);
 
   useEffect(() => {
     let live = true;
@@ -250,6 +261,10 @@ export default function ComposePage(props: { id?: string }): JSX.Element {
   useEffect(() => {
     if (attempt > 0 && Object.keys(errors).length > 0) summaryRef.current?.focus();
   }, [attempt, errors]);
+
+  useEffect(() => {
+    if (focusTick > 0) document.getElementById('f-title')?.focus();
+  }, [focusTick]);
 
   if (data.status === 'loading' || (data.status === 'ready' && !form)) {
     return (
@@ -318,6 +333,33 @@ export default function ComposePage(props: { id?: string }): JSX.Element {
     setRestored(false);
     setErrors({});
     setForm(blankForm());
+    setPending({});
+    setImportNote(null);
+  };
+
+  // Pre-fill only: nothing is saved, and the member's own text is never overwritten.
+  const applyImport = (imp: ImportedRecipe, by: ImportedBy) => {
+    const merged = mergeImported(form, imp);
+    setForm(merged.form);
+    setPending(merged.pending);
+    setImportNote({ summary: describeFilled(merged.filled), by });
+    setErrors({});
+    setImportOpen(false);
+    setFocusTick((n) => n + 1);
+  };
+
+  const addPending = (what: 'ingredients' | 'steps') => {
+    if (what === 'ingredients' && pending.ingredients) {
+      const n = pending.ingredients.length;
+      setForm(appendIngredients(form, pending.ingredients));
+      setImportNote({ summary: `Added ${n} imported ${n === 1 ? 'ingredient' : 'ingredients'}. Review before saving.` });
+    }
+    if (what === 'steps' && pending.steps) {
+      const n = pending.steps.length;
+      setForm(appendSteps(form, pending.steps));
+      setImportNote({ summary: `Added ${n} imported ${n === 1 ? 'step' : 'steps'}. Review before saving.` });
+    }
+    setPending((p) => ({ ...p, [what]: undefined }));
   };
 
   const onSubmit = async (e: FormEvent) => {
@@ -363,7 +405,29 @@ export default function ComposePage(props: { id?: string }): JSX.Element {
               We kept your unsaved draft from last time.
             </p>
           )}
+          {isNew && (
+            <button
+              type="button" className="btn btn-prop cp-import-open" aria-expanded={importOpen} aria-controls="cp-import-panel"
+              onClick={() => setImportOpen((o) => !o)}
+            >
+              Import a recipe
+            </button>
+          )}
+          {isNew && (
+            <div className="cp-importmsg" aria-live="polite">
+              {importNote && <p className="cp-line">{importNote.summary}</p>}
+              {importNote?.by && <p className="cp-note">{BY_LINE[importNote.by]}</p>}
+              {pending.ingredients && (
+                <button type="button" className="quiet" onClick={() => addPending('ingredients')}>Add the imported ingredients too</button>
+              )}
+              {pending.steps && (
+                <button type="button" className="quiet" onClick={() => addPending('steps')}>Add the imported steps too</button>
+              )}
+            </div>
+          )}
         </header>
+
+        {isNew && importOpen && <ImportPanel onResult={applyImport} onClose={() => setImportOpen(false)} />}
 
         {errorIds.length > 0 && (
           <div className="cp-summary" ref={summaryRef} tabIndex={-1} role="alert" aria-labelledby="cp-summary-h">
@@ -384,7 +448,8 @@ export default function ComposePage(props: { id?: string }): JSX.Element {
           <TextField id="f-title" label="Title" required value={form.title} errors={errors} onChange={(v) => patch({ title: v })} />
           <TextField
             id="f-story" label="The story behind it" required multiline value={form.story} errors={errors}
-            hint="Who made it for you, and when does it appear?" onChange={(v) => patch({ story: v })}
+            hint="Who made it for you, and when does it appear?"
+            placeholder={importNote && blankText(form.story) ? 'Add why this dish matters to you' : undefined} onChange={(v) => patch({ story: v })}
           />
 
           <div className="cp-cols">

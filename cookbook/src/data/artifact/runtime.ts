@@ -68,4 +68,6 @@ export const CAPABILITIES = {
   },
   assets: { upload: 'interact' },
   user: { scopes: ['profile'] },
+  /** Ask Claude on the viewer's own account to read a pasted recipe or a photo of a recipe card. */
+  sample: { images: true },
 } as const;

@@ -22,3 +22,7 @@ Data goes through the `DataStore` interface (`src/data/store.ts`); `createMockSt
 
 1. `npm run release` (typecheck, tests, build, dist check). Fix anything it reports.
 2. Publish `dist/index.html` as the artifact page, declaring `CAPABILITIES` from `src/data/artifact/runtime.ts`.
+
+## Import a recipe
+
+On the new-recipe screen, "Import a recipe" pre-fills the form from pasted text or a photo of a recipe card. It never saves. Parsers live in `src/lib/import/`: a local reader (headings, lists, JSON-LD) that always works, and Claude via the `sample` capability (manifest `sample: { images: true }`, see `CAPABILITIES`) when running in claude.ai. No URL fetching: copy the page text and paste it.
