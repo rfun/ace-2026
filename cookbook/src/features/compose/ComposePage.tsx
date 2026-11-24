@@ -23,6 +23,7 @@ import './compose.css';
 type Loaded =
   | { status: 'loading' }
   | { status: 'missing' }
+  | { status: 'failed' }
   | { status: 'ready'; me: Me; recipe?: Recipe };
 
 type SlotTarget = { kind: 'main' } | { kind: 'step'; key: string };
@@ -224,7 +225,7 @@ export default function ComposePage(props: { id?: string }): JSX.Element {
         setForm(formFromRecipe(recipe));
         setData({ status: 'ready', me, recipe });
       } catch {
-        if (live) setData({ status: 'missing' });
+        if (live) setData({ status: 'failed' });
       }
     })();
     return () => {
@@ -249,6 +250,9 @@ export default function ComposePage(props: { id?: string }): JSX.Element {
   }
   if (data.status === 'missing') {
     return <Notice tab="Edit recipe card" message="This card isn't in the tin." backTo={{ name: 'browse' }} backLabel="Back to all recipes" />;
+  }
+  if (data.status === 'failed') {
+    return <Notice tab="Recipe card" message="Couldn't load this card. Check your connection and try again." backTo={{ name: 'browse' }} backLabel="Back to all recipes" />;
   }
   const { me, recipe } = data;
   const tab = isNew ? 'New recipe card' : 'Edit recipe card';

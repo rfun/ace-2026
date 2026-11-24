@@ -1,5 +1,8 @@
 export const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
-/** Files at or under this size and within the edge limit are uploaded untouched. */
+/**
+ * "Small enough" for the passthrough rule: files at or under this size and within the edge limit are
+ * uploaded untouched; a heavier file is re-encoded even if its edges fit (the smaller result wins).
+ */
 export const SMALL_ENOUGH_BYTES = 1.5 * 1024 * 1024;
 const DEFAULT_MAX_EDGE = 1600;
 const DEFAULT_QUALITY = 0.85;

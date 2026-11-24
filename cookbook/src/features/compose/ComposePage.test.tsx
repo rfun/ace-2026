@@ -80,6 +80,14 @@ describe('ComposePage access', () => {
     expect(screen.getByRole('link', { name: /Back to all recipes/ })).toBeInTheDocument();
   });
 
+  it('reports a load failure as such, not as a missing card (catches a fetch error hidden as "not in the tin")', async () => {
+    const store = createMockStore({ me: author });
+    vi.spyOn(store, 'getRecipe').mockRejectedValue(new Error('net'));
+    mount(store, ID);
+    expect(await screen.findByText(/Couldn't load this card/)).toBeInTheDocument();
+    expect(screen.queryByText("This card isn't in the tin.")).toBeNull();
+  });
+
   it('falls back to the id in the route when no prop is passed, as App renders it (catches edit mode never loading)', async () => {
     window.location.hash = `#/compose/${ID}`;
     const store = createMockStore({ me: author });
