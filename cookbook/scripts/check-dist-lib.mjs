@@ -53,7 +53,11 @@ export function checkHtml(html) {
   return problems;
 }
 
-/** Flags use of dangerouslySetInnerHTML in app source text. */
+/** Flags dangerouslySetInnerHTML and literal U+FFFD (write it as an escape) in app source text. */
 export function checkSource(text, file) {
-  return text.includes('dangerouslySetInnerHTML') ? [`dangerouslySetInnerHTML used in ${file}`] : [];
+  const problems = [];
+  if (text.includes('dangerouslySetInnerHTML')) problems.push(`dangerouslySetInnerHTML used in ${file}`);
+  const line = text.split('\n').findIndex((l) => l.includes('\uFFFD'));
+  if (line >= 0) problems.push(`literal U+FFFD (replacement character) in ${file} line ${line + 1}; write it as an escape`);
+  return problems;
 }
