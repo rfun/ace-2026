@@ -14,8 +14,8 @@
 .bw-group { border: 0; margin: 0 0 10px; padding: 0; min-width: 0; }
 .bw-legend { font: 700 13px/20px var(--font-typed); text-transform: uppercase; letter-spacing: 0.12em; color: var(--kraft); padding: 0; }
 .bw-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.bw-chip { font: 700 15px/1 var(--font-typed); background: var(--kraft); color: var(--kraft-ink); border: 0; border-radius: 9px 9px 0 0; padding: 9px 14px 8px; min-height: 40px; cursor: pointer; box-shadow: var(--shadow-tab); }
-.bw-chip-on { background: var(--card); color: var(--ink); box-shadow: none; text-decoration: underline; }
+.bw-chip { font-size: 15px; line-height: 1; padding: 9px 14px 8px; min-height: 40px; }
+.bw-chip[aria-pressed="true"] { text-decoration: underline; }
 
 .bw-active { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 16px; }
 .bw-active-chip { font: 700 14px/1 var(--font-typed); background: var(--card); color: var(--ink); border: 2px solid var(--stamp-violet); border-radius: 5px; padding: 8px 10px; min-height: 40px; cursor: pointer; }
@@ -32,7 +32,7 @@
 .bw-by { font: 700 15px/32px var(--font-typed); }
 .bw-meta { font: 700 14px/24px var(--font-typed); color: var(--ink-soft); }
 .bw-stamps { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
-.bw-stamps .stamp { font-size: 12px; padding: 5px 8px; border-width: 2px; background: var(--stock); }
+.bw-stamps .stamp { font-size: 13px; padding: 5px 8px; border-width: 2px; background: var(--stock); }
 
 .bw-card > .bw-snap { position: absolute; right: 20px; top: 14px; margin: 0; padding-left: 0; width: 120px; height: 90px; transform: rotate(2deg); }
 .bw-snap::before { top: -10px; width: 50px; height: 18px; margin-left: -25px; }

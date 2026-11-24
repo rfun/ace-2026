@@ -36,7 +36,7 @@ function Snapshot(props: { photo: Photo; className: string }): JSX.Element {
 
 function BackTab(): JSX.Element {
   return (
-    <a className="rc-tab rc-tab-back" href={formatHash({ name: 'browse' })} onClick={goBrowse}>
+    <a className="tab rc-tab rc-tab-back" href={formatHash({ name: 'browse' })} onClick={goBrowse}>
       <span aria-hidden="true" className="rc-arrow">
         {'← '}
       </span>
@@ -211,7 +211,6 @@ export default function RecipePage(props: { id: string; onAddTip?: () => void })
             {recipe.sample && <li className="stamp stamp-sample">Sample recipe</li>}
             {recipe.dietary.map((tag) => (
               <li key={tag} className={`stamp stamp-${DIETARY[tag].ink}`}>
-                <span aria-hidden="true">{DIETARY[tag].symbol} </span>
                 {DIETARY[tag].label}
               </li>
             ))}

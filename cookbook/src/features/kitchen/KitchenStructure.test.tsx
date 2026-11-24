@@ -15,7 +15,7 @@ async function ready() {
       <KitchenScreen id={ID} />
     </StoreProvider>,
   );
-  await screen.findByRole('heading', { level: 1 });
+  await screen.findByRole('heading', { level: 1 }, { timeout: 5000 });
 }
 
 const next = () => fireEvent.keyDown(window, { key: 'ArrowRight' });

@@ -2,7 +2,7 @@
 .rc-ground { max-width: 1200px; margin: 0 auto; color: var(--ink); }
 
 .rc-tabs { display: flex; flex-wrap: wrap; gap: 6px; padding-left: 24px; font-family: var(--font-typed); font-weight: 700; font-size: 15px; }
-.rc-tab { background: var(--kraft); color: var(--kraft-ink); padding: 9px 20px 8px; border-radius: 9px 9px 0 0; margin-top: 6px; text-decoration: none; box-shadow: var(--shadow-tab); }
+.rc-tab { padding: 9px 20px 8px; margin-top: 6px; }
 .rc-where { color: var(--card); padding: 9px 4px 8px; align-self: center; }
 .rc-where + .rc-where::before { content: "/"; margin-right: 10px; opacity: 0.6; }
 .rc-arrow { display: none; }
@@ -51,7 +51,7 @@
 .rc-hand { font: 500 22px/28px var(--font-hand); margin: 0; }
 .rc-empty { margin: 8px 0 16px; color: var(--ink-soft); }
 .rc-sign { font: 600 22px/26px var(--font-hand); margin: 2px 0 0; text-align: right; }
-.rc-hidden-note { display: block; font: 400 12px/16px var(--font-typed); color: var(--ink-soft); }
+.rc-hidden-note { display: block; font: 400 13px/16px var(--font-typed); color: var(--ink-soft); }
 .rc-margin .quiet { display: flex; width: fit-content; margin-left: auto; }
 
 /* While a tip is being written the margin column takes the full width, below the body, so the composer is not cramped. */
@@ -73,7 +73,7 @@
 @media (max-width: 600px) {
   .rc-tabs { padding-left: 12px; font-size: 17px; }
   .rc-where { display: none; }
-  .rc-tab-back { background: var(--stock); color: var(--ink); margin-top: 0; padding-top: 15px; box-shadow: none; min-height: 44px; }
+  .rc-tabs .rc-tab-back { background: var(--stock); color: var(--ink); margin-top: 0; padding-top: 15px; box-shadow: none; min-height: 44px; }
   .rc-arrow { display: inline; }
   .rc-title { font-size: 34px; line-height: 40px; }
   .rc-hand, .rc-sign, .rc-qty { font-size: 22px; }

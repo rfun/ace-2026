@@ -13,8 +13,8 @@ Contrast figures are WCAG 2.x ratios computed from the token hex values; `src/do
 | Role | Token | Value | Notes |
 |---|---|---|---|
 | Enamel (page ground) | `--enamel` | #1f4f4a | `body` background. Card-colour text on it: 8.6:1 |
-| Enamel deep | `--enamel-deep` | #163b37 | header bar, filter panel. Card text 11.5:1, `--kraft` text 4.9:1 |
-| Kraft | `--kraft` | #c69c6d | tabs, chips, card-edge borders, button offset |
+| Enamel deep | `--enamel-deep` | #163b37 | header bar, filter panel. Card text 11.4:1, `--kraft` text 4.9:1 |
+| Kraft | `--kraft` | #c69c6d | tabs, chips, card-edge borders |
 | Kraft ink | `--kraft-ink` | #4a3420 | text on kraft, 4.6:1 |
 | Card | `--card` | #fbf7ee | the default card stock; also `--stock` default |
 | Paper white | `--paper-white` | #ffffff | snapshot borders, alt-text field |
@@ -34,11 +34,11 @@ Course stocks. Each course in `COURSES` (`src/domain/tags.ts`) names a stock; `s
 | `--stock-mint` / `.stock-mint` | #cfe6d3 | side, condiment |
 | `--stock-sky` / `.stock-sky` | #cfe0f1 | drink |
 
-Pens (tip handwriting). `penFor(userId)` hashes a user id onto four fixed pens: `--pen-navy` #23305c, `--pen-green` #2f6b3f, `--pen-violet` #8a2d5c, `--pen-graphite` #55585e. Used by the shared `.pen-*` classes in `components.css` (shown tips and the composer). Pens are 4.4:1 or better on every stock and 6.0:1 or better on card, where tips are written. Pen assignment by hash (not user choice) is the build's answer to the open question.
+Pens (tip handwriting). `penFor(userId)` hashes a user id onto four fixed pens: `--pen-navy` #23305c, `--pen-green` #2f6b3f, `--pen-violet` #8a2d5c, `--pen-graphite` #55585e. Used by the shared `.pen-*` classes in `components.css` (shown tips and the composer). Pens are 4.4:1 or better on every stock (lowest: green on blush, 4.42:1) and 5.9:1 or better on card, where tips are written (lowest: green, 5.96:1). Pen assignment by hash (not user choice) is the build's answer to the open question.
 
 Stamp inks, one fixed ink per dietary tag (`DIETARY`): `--stamp-green` vegetarian, `--stamp-olive` vegan, `--stamp-umber` gluten-free, `--stamp-navy` dairy-free, `--stamp-rust` nut-free, `--stamp-graphite` egg-free, `--stamp-teal` halal, `--stamp-violet` kosher. Each is 4.5:1 or better on card and all stocks (test).
 
-Shadows: `--shadow-card`, `--shadow-tile` (cards on enamel), `--shadow-snap` (snapshots), `--shadow-tab` (inset, makes an inactive tab look recessed). Radii: `--radius-card` 6px, `--radius-card-top` (6px 10px 0 0, card with square bottom edge).
+Shadows: buttons carry none (no hard offset shadows in this world); `--shadow-card`, `--shadow-tile` (cards on enamel), `--shadow-snap` (snapshots), `--shadow-tab` (inset, makes an inactive tab look recessed). Radii: `--radius-card` 6px, `--radius-card-top` (6px 10px 0 0, card with square bottom edge).
 
 ## Type
 
@@ -62,12 +62,13 @@ Text-on-rules rule: every block inside a ruled region must total a whole number 
 
 Shared pieces live in `src/styles/components.css`; feature CSS adds layout only.
 
-- Buttons: `.btn` (ink fill, typed 17px bold, min-height 44px) and `.btn-prop` (card fill, ink text). Disabled is 0.55 opacity. `.kt-btn` and `.kt-btn-next` in `kitchen.css` are the 72px-high kitchen variants.
+- Buttons: `.btn` (ink fill, typed 17px bold, min-height 44px, no shadow; pressed state nudges 1px and lightens) and `.btn-prop` (card fill, ink text). Disabled is 0.55 opacity. `.kt-btn` and `.kt-btn-next` in `kitchen.css` are the 72px-high kitchen variants.
 - Quiet action: `.quiet` (underlined typed 17px text button, 44px minimum height); `.quiet-light` for use on enamel.
 - Labels: `.label` (typed, uppercase, margin-ink, one rule gap tall) and `.label-ink` (ink colour). Used for field legends and the recipe margin heading.
 - Snapshot with tape: `.snap` (white 6px border, `--shadow-snap`, tape strip via `::before`). The screen sets size and tilt: `.rc-snap-main`, `.rc-snap-step`, `.rc-snap-tip`, `.bw-snap`, `.cp-snap`, `.kt-photo`; the composer preview `.tips-preview` repeats the look.
-- Stamps: `.stamp` plus one `.stamp-<ink>` class, which sets ink and a fixed tilt per tag. `.stamp-sample` is a dashed ink variant for example recipes. Browse tiles shrink stamps to 12px desktop, 15px phone.
-- Tabs: kraft divider tabs `.rc-tab`, `.cp-tab` (active `.cp-tab-on` is card colour and sits flush); browse filter chips `.bw-chip` and `.bw-chip-on`. On a phone the recipe tabs collapse to one back tab `.rc-tab-back` with `.rc-where` crumbs hidden.
+- Stamps: `.stamp` plus one `.stamp-<ink>` class, which sets ink and a fixed tilt per tag. Stamps and course chips are text only (label plus ink or stock); there are no glyph icons. `.stamp-sample` is a dashed ink variant for example recipes (13px). Browse tiles shrink stamps to 13px desktop, 15px phone.
+- Tabs and chips: one shared `.tab` component in `components.css` (kraft, recessed; `[aria-pressed="true"]` or `.is-active` turns it card colour and flush). Features add only size and padding: `.rc-tab` (recipe back tab, `.rc-tab-back`), `.cp-tab` (compose), `.bw-chip` (browse filters, a pressed-state button). On a phone the recipe tabs collapse to one back tab with `.rc-where` crumbs hidden.
+- Edit rights: only a recipe's author sees "Edit this card" (a moderator who is also the author keeps it). Moderators can hide or remove tips and recipes but never edit anyone else's text.
 - Tips: `.rc-tip` with `.rc-tilt-0/1/2`, `.rc-hand` text, `.rc-sign` signature; composer is `.tips-composer` with a ruled `.tips-area`.
 - Focus: one pair in `components.css`. On a card, a 3px `--ink` outline with a 6px `--card` halo; inside `.on-enamel`, a `--card` outline with an `--ink` halo. `.shell-home` and `.cp-summary` override for their own surfaces.
 
@@ -90,7 +91,7 @@ Shared pieces live in `src/styles/components.css`; feature CSS adds layout only.
 
 - Text meets 4.5:1 on every ground it is used on, enforced by `contrast.test.ts`; red text uses `--margin-ink`, never `--margin`.
 - Targets are at least 44px on phone (buttons, quiet actions, checkboxes, chips); kitchen buttons are 72px.
-- Phone text at least 17px (see Type).
+- Phone text at least 17px (see Type). No visible text under 13px on desktop.
 - Visible focus on every control on both card and enamel grounds; the visually hidden photo input shows focus on its button (`.cp-ground input.sr-only:focus-visible + .cp-filebtn`). `.sr-only` is the hidden-text utility.
 - Form errors are in text with `aria-invalid` styling, not colour alone.
 - Overflow-wrap is set on titles so non-Latin and long titles do not break layout.
@@ -109,12 +110,3 @@ Don't:
 - Don't put a hex or rgba colour in feature CSS.
 - Don't use `--margin` for text, or colour alone to carry meaning.
 - Don't add ratings, rankings or a default culture to the visual language (product principle).
-
-## Not canonized (defects and drift in the build)
-
-Recorded so future surfaces do not inherit them:
-- `.btn` carries a hard offset shadow (`2px 3px 0 var(--kraft)`); a hard offset shadow is not part of this world's vocabulary.
-- Stamp and course symbols in `src/domain/tags.ts` are text glyphs used as icons.
-- Some desktop sizes fall under the phone floor's spirit: `.rc-hidden-note` 12px, `.bw-legend` 13px, `.stamp-sample` 12px; they are raised on phone only.
-- `tips.css` `.tips-area` hard-codes 32px/31px in its ruled gradient instead of `--rule-gap`.
-- Tab and chip colours repeat between `.rc-tab`, `.cp-tab` and `.bw-chip` rather than sharing one component.
