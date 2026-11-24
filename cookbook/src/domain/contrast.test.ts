@@ -59,6 +59,37 @@ describe('course stock', () => {
   });
 });
 
+describe('tin ground', () => {
+  const tin = [['--tin', token('--tin')], ['--tin-hi', token('--tin-hi')], ['--tin-lo', token('--tin-lo')]] as const;
+  it.each(tin)('card-coloured text (header, notice, tab labels, focus ring) is at least 4.5:1 on %s (catches a tin too light for card text)', (_n, bg) => {
+    expect(ratio(token('--card'), bg)).toBeGreaterThanOrEqual(4.5);
+  });
+  it.each(tin)('kraft (tab fills, chip and panel borders) is at least 3:1 UI contrast on %s (catches a tin too light for kraft edges)', (_n, bg) => {
+    expect(ratio(token('--kraft'), bg)).toBeGreaterThanOrEqual(3);
+  });
+  it('kraft text on the filter panel and header (--tin-lo) is at least 4.5:1 (catches a panel too light for kraft text)', () => {
+    expect(ratio(token('--kraft'), token('--tin-lo'))).toBeGreaterThanOrEqual(4.5);
+  });
+  it('the card-coloured focus ring is at least 3:1 on the lightest and darkest gradient stops (catches an invisible focus ring)', () => {
+    expect(ratio(token('--card'), token('--tin-hi'))).toBeGreaterThanOrEqual(3);
+    expect(ratio(token('--card'), token('--tin-lo'))).toBeGreaterThanOrEqual(3);
+  });
+  it('the shell notice is solid card colour with no opacity, so it keeps 4.5:1 on both gradient ends (catches a faded notice dropping below 4.5:1)', () => {
+    const css: string = readFileSync('src/styles/components.css', 'utf8');
+    const rule = /\.shell-notice \{([^}]*)\}/.exec(css);
+    if (!rule) throw new Error('.shell-notice rule not found');
+    expect(rule[1]).toMatch(/color:\s*var\(--card\)/);
+    expect(rule[1]).not.toMatch(/opacity/);
+    for (const bg of [token('--tin-hi'), token('--tin-lo')]) expect(ratio(token('--card'), bg)).toBeGreaterThanOrEqual(4.5);
+  });
+  it('the gradient runs from --tin-hi to --tin-lo (catches the page ground drifting from the tin tokens)', () => {
+    expect(tokensCss).toMatch(/--ground:\s*radial-gradient\([^)]*var\(--tin-hi\)[^)]*var\(--tin-lo\)/);
+  });
+  it('no enamel token remains (catches a stale teal ground)', () => {
+    expect(tokensCss).not.toMatch(/--enamel/);
+  });
+});
+
 describe('tokens file hygiene', () => {
   it('--margin-ink differs from --margin, which stays for rules (catches the text red replacing the rule red)', () => {
     expect(token('--margin-ink')).not.toBe(token('--margin'));

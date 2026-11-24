@@ -54,7 +54,7 @@ describe('App shell', () => {
   // Catches: header removed or renamed.
   it('renders the header', () => {
     renderApp();
-    expect(screen.getByText('ACE Culture Cookbook')).toBeInTheDocument();
+    expect(screen.getByText('ACE Cookbook')).toBeInTheDocument();
   });
 
   // Catches: logo dropped, wrong alt, or header no longer linking home.
@@ -117,7 +117,7 @@ describe('App shell', () => {
   ] as const)('on %s the shell header is shown: %s', async (hash, shown) => {
     renderApp();
     await goTo(hash);
-    if (shown) expect(screen.getByText('ACE Culture Cookbook')).toBeInTheDocument();
-    else expect(screen.queryByText('ACE Culture Cookbook')).toBeNull();
+    if (shown) expect(screen.getByText('ACE Cookbook')).toBeInTheDocument();
+    else expect(screen.queryByText('ACE Cookbook')).toBeNull();
   });
 });

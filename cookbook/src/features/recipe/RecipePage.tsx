@@ -48,7 +48,7 @@ function BackTab(): JSX.Element {
 function Shell(props: { tabs: JSX.Element; children: JSX.Element; busy?: boolean; stock?: string }): JSX.Element {
   return (
     <div className={`rc-ground ${props.stock ?? ''}`} aria-busy={props.busy ? true : undefined}>
-      <nav className="rc-tabs on-enamel" aria-label="Recipe location">
+      <nav className="rc-tabs on-tin" aria-label="Recipe location">
         {props.tabs}
       </nav>
       {props.children}
