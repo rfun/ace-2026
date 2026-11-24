@@ -56,3 +56,12 @@
 /* Quiet shell notice (e.g. shared storage unreachable): small typed line on the tin, no alarm colours. */
 .shell-notice { margin: 0; padding: 8px 24px; font: 400 14px/20px var(--font-typed); color: var(--card); }
 @media (max-width: 600px) { .shell-notice { padding: 8px 12px; } }
+
+/* Servings control (recipe card and kitchen mode). Every rule is scoped under .sv-ctl; each screen sets the row height as whole rule gaps. */
+.sv-ctl { display: flex; align-items: center; gap: 8px; }
+.sv-ctl .sv-now { display: inline-flex; align-items: baseline; gap: 8px; margin-right: 4px; }
+.sv-ctl .sv-label { display: inline; }
+.sv-ctl .sv-n { font: 700 24px/1 var(--font-typed); color: var(--pen-navy); min-width: 2ch; }
+.sv-ctl .sv-btn { min-width: 44px; min-height: 44px; padding: 0; font-size: 24px; }
+.sv-ctl .sv-btn[aria-disabled="true"] { opacity: 0.45; cursor: default; }
+.sv-ctl .sv-reset { padding: 10px 8px; }

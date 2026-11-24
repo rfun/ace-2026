@@ -17,6 +17,12 @@ describe('sample data', () => {
     for (const r of SAMPLE_RECIPES) expect(ids.has(r.authorId)).toBe(true);
     for (const t of SAMPLE_TIPS) expect(ids.has(t.authorId)).toBe(true);
   });
+  it('gives serves (a whole number 1..100) to some samples and leaves at least one without (catches losing the no-scaler path in dev)', () => {
+    const withServes = SAMPLE_RECIPES.filter((r) => r.serves !== undefined);
+    expect(withServes.length).toBeGreaterThan(0);
+    for (const r of withServes) expect(Number.isInteger(r.serves) && r.serves! >= 1 && r.serves! <= 100).toBe(true);
+    expect(SAMPLE_RECIPES.some((r) => r.serves === undefined)).toBe(true);
+  });
   it('includes the Besan Ladoo card from the mock with 5 ingredients and 5 steps', () => {
     const r = SAMPLE_RECIPES.find((x) => x.title === 'Besan Ladoo');
     expect(r).toBeDefined();

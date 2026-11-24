@@ -73,6 +73,8 @@ export function parseRecipe(raw: unknown, authorId: string): Recipe | null {
   if (city) recipe.city = city;
   if (makes) recipe.makes = makes;
   if (num(raw.totalMinutes)) recipe.totalMinutes = raw.totalMinutes;
+  // Anything but a whole number from 1 to 100 is dropped (the recipe just shows no scaler), never an error.
+  if (num(raw.serves) && Number.isInteger(raw.serves) && raw.serves >= 1 && raw.serves <= 100) recipe.serves = raw.serves;
   const mainPhoto = parsePhoto(raw.mainPhoto);
   if (mainPhoto) recipe.mainPhoto = mainPhoto;
   return recipe;

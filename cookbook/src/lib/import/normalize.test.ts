@@ -74,3 +74,20 @@ describe('normalizeImported', () => {
     expect(normalizeImported({ title: 'T', html: '<img src=x onerror=alert(1)>', __proto__: { course: 'main' } })).toEqual({ title: 'T' });
   });
 });
+
+describe('normalizeImported: serves', () => {
+  it.each([
+    [4, 4],
+    ['6', 6],
+    [1, 1],
+    [100, 100],
+    [101, undefined],
+    [0, undefined],
+    [2.5, undefined],
+    [-2, undefined],
+    ['four', undefined],
+    [null, undefined],
+  ])('serves %j -> %j (whole number 1..100 only; catches fractional or out-of-range portions)', (input, expected) => {
+    expect(normalizeImported({ serves: input }).serves).toBe(expected);
+  });
+});

@@ -21,6 +21,13 @@
 .kt-ing-text { line-height: var(--rule-gap); }
 .kt-qty { font: 700 22px/var(--rule-gap) var(--font-typed); color: var(--pen-navy); vertical-align: top; position: relative; top: 4px; }
 
+/* The kitchen card runs on a 48px rule: the servings row is two rule gaps, with larger buttons. */
+.kt-card .sv-ctl { height: calc(var(--rule-gap) * 2); gap: 12px; }
+.kt-card .sv-ctl .sv-btn { min-width: 56px; min-height: 56px; font-size: 28px; }
+.kt-card .sv-ctl .sv-n { font-size: 32px; }
+.kt-card .sv-ctl .sv-reset { font-size: 20px; }
+.kt-note { margin: 0; font: 400 18px/var(--rule-gap) var(--font-read); color: var(--ink-soft); }
+
 .kt-photo { max-width: 420px; }
 .kt-photo img { height: auto; max-height: 40vh; }
 
@@ -38,6 +45,13 @@
   .kt-card { margin: 8px; width: calc(100% - 16px); padding: 0 16px 48px 40px; }
   .kt-card::before { left: 24px; }
   .kt-title { font-size: 30px; }
+  /* Narrow card: the whole row (label, number, two buttons, Reset) has to fit without wrapping. */
+  .kt-card .sv-ctl { gap: 6px; }
+  .kt-card .sv-ctl .sv-now { gap: 6px; margin-right: 0; }
+  .kt-card .sv-ctl .sv-label { font-size: 14px; letter-spacing: 0.08em; }
+  .kt-card .sv-ctl .sv-n { font-size: 28px; }
+  .kt-card .sv-ctl .sv-btn { min-width: 48px; min-height: 48px; }
+  .kt-card .sv-ctl .sv-reset { font-size: 17px; padding: 10px 2px; }
   .kt-step { font-size: 30px; }
   .kt-nav { padding: 4px 8px 12px; }
 }

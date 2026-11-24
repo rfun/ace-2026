@@ -49,6 +49,10 @@ export function mergeImported(form: FormState, imp: ImportedRecipe): MergeResult
     next.dietary = [...imp.dietary];
     filled.push('dietary notes');
   }
+  if (imp.serves !== undefined && blank(next.serves)) {
+    next.serves = String(imp.serves);
+    filled.push('servings');
+  }
   text('makes', imp.makes, 'makes');
   if (imp.totalMinutes !== undefined && blank(next.minutes)) {
     next.minutes = String(imp.totalMinutes);

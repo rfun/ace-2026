@@ -112,13 +112,14 @@ describe('Import a recipe: local parser (no sample)', () => {
     paste(NOTES);
     fill();
     await waitFor(() => expect(screen.getByLabelText(/^Title/)).toHaveValue('Besan Ladoo'));
+    expect(screen.getByLabelText(/^Serves/)).toHaveValue(4);
     expect(screen.getByLabelText(/^Makes/)).toHaveValue('Serves 4');
     expect(screen.getByLabelText(/^Total time/)).toHaveValue('75');
     expect(screen.getByLabelText('Ingredient 1 Amount')).toHaveValue('2 cups');
     expect(screen.getByLabelText('Ingredient 2 Ingredient')).toHaveValue('ghee');
     expect(screen.getByLabelText('Step 2')).toHaveValue('Roll into balls.');
     expect(screen.getByText("Filled in from the text's headings — check every field")).toBeInTheDocument();
-    expect(screen.getByText('Filled title, makes, total time, 2 ingredients, 2 steps. Review before saving.')).toBeInTheDocument();
+    expect(screen.getByText('Filled title, servings, makes, total time, 2 ingredients, 2 steps. Review before saving.')).toBeInTheDocument();
     expect(document.activeElement).toBe(screen.getByLabelText(/^Title/));
     expect(screen.queryByLabelText(/^Paste the recipe/)).toBeNull();
     expect(save).not.toHaveBeenCalled();
@@ -160,6 +161,16 @@ describe('Import a recipe: local parser (no sample)', () => {
     await screen.findByText(/Review before saving/);
     expect(screen.getByLabelText(/^Course/)).toHaveValue('dessert');
     expect(screen.getByLabelText(/^Total time/)).toHaveValue('20');
+  });
+
+  it('does not overwrite a typed Serves (catches the import clobbering the member\'s portion count)', async () => {
+    await ready(createMockStore({ me: author }));
+    type(/^Serves/, '9');
+    openPanel();
+    paste(NOTES);
+    fill();
+    await screen.findByText(/Review before saving/);
+    expect(screen.getByLabelText(/^Serves/)).toHaveValue(9);
   });
 
   it('nudges the story field without filling it when the text has no intro', async () => {

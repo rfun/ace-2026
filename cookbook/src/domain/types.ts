@@ -9,6 +9,8 @@ export interface Recipe {
   id: string; title: string; authorId: UserId;
   team?: string; city?: string;
   origin: string; occasions: string[]; course: Course; dietary: DietaryTag[];
+  /** Portions the quantities are written for (1..100). Optional: older recipes have none and show no scaler. */
+  serves?: number;
   makes?: string; totalMinutes?: number;
   story: string; ingredients: Ingredient[]; steps: Step[]; mainPhoto?: Photo;
   createdAt: number; updatedAt: number; hidden?: boolean; sample?: boolean;

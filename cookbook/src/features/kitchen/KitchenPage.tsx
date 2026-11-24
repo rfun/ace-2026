@@ -4,6 +4,8 @@ import { formatHash, navigate } from '../../app/router';
 import { useStore } from '../../data/StoreProvider';
 import { stockClass } from '../../domain/tags';
 import type { Recipe } from '../../domain/types';
+import ServingsControl from '../recipe/ServingsControl';
+import { useServings } from '../recipe/useServings';
 import './kitchen.css';
 
 type Loaded = { status: 'loading' } | { status: 'missing' } | { status: 'ready'; recipe: Recipe };
@@ -98,6 +100,37 @@ function Frame(props: { id: string; live?: string; busy?: boolean; children: Rea
       {props.children}
       {props.footer}
     </div>
+  );
+}
+
+function Gather(props: {
+  recipe: Recipe;
+  checked: Record<number, boolean>;
+  onCheck: (i: number, on: boolean) => void;
+}): JSX.Element {
+  const { recipe } = props;
+  // Same hook as the recipe card: the amounts here match what the card was showing for this visit.
+  const sv = useServings(recipe.id, recipe.serves, recipe.ingredients);
+  return (
+    <>
+      <h2 className="kt-title">Gather the ingredients</h2>
+      {sv.servings !== undefined && (
+        <ServingsControl servings={sv.servings} changed={sv.changed} onChange={sv.set} onReset={sv.reset} />
+      )}
+      <ul className="kt-ing">
+        {sv.scaled.map((ing, i) => (
+          <li key={i}>
+            <label className="kt-check">
+              <input type="checkbox" checked={Boolean(props.checked[i])} onChange={(e) => props.onCheck(i, e.target.checked)} />
+              <span className="kt-ing-text">
+                <span className="kt-qty">{ing.quantity}</span> {ing.item}
+              </span>
+            </label>
+          </li>
+        ))}
+      </ul>
+      {sv.hasUnscaled && <p className="kt-note">Amounts without a number aren&apos;t scaled</p>}
+    </>
   );
 }
 
@@ -208,27 +241,7 @@ export default function KitchenPage(props: { id: string }): JSX.Element {
 
   let body: JSX.Element;
   if (onGather) {
-    body = (
-      <>
-        <h2 className="kt-title">Gather the ingredients</h2>
-        <ul className="kt-ing">
-          {recipe.ingredients.map((ing, i) => (
-            <li key={i}>
-              <label className="kt-check">
-                <input
-                  type="checkbox"
-                  checked={Boolean(checked[i])}
-                  onChange={(e) => setChecked((c) => ({ ...c, [i]: e.target.checked }))}
-                />
-                <span className="kt-ing-text">
-                  <span className="kt-qty">{ing.quantity}</span> {ing.item}
-                </span>
-              </label>
-            </li>
-          ))}
-        </ul>
-      </>
-    );
+    body = <Gather recipe={recipe} checked={checked} onCheck={(i, on) => setChecked((c) => ({ ...c, [i]: on }))} />;
   } else if (onDone) {
     body = (
       <>

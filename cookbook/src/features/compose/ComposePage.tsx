@@ -175,7 +175,7 @@ function moved<T>(list: T[], from: number, dir: -1 | 1): T[] {
 
 function TextField(props: {
   id: string; label: string; value: string; required?: boolean; hint?: string; multiline?: boolean; errors: Errors;
-  inputMode?: 'numeric'; onChange: (v: string) => void; className?: string; placeholder?: string;
+  inputMode?: 'numeric'; type?: 'number'; min?: number; max?: number; onChange: (v: string) => void; className?: string; placeholder?: string;
 }): JSX.Element {
   const common = {
     id: props.id,
@@ -194,7 +194,7 @@ function TextField(props: {
       {props.multiline ? (
         <textarea className="cp-input cp-area" rows={4} {...common} />
       ) : (
-        <input className="cp-input" type="text" inputMode={props.inputMode} {...common} />
+        <input className="cp-input" type={props.type ?? 'text'} inputMode={props.inputMode} min={props.min} max={props.max} {...common} />
       )}
       {props.hint && <p className="cp-hint" id={`${props.id}-hint`}>{props.hint}</p>}
       <FieldError id={props.id} errors={props.errors} />
@@ -475,6 +475,7 @@ export default function ComposePage(props: { id?: string }): JSX.Element {
               <FieldError id="f-course" errors={errors} />
             </div>
             <TextField id="f-minutes" label="Total time (minutes)" inputMode="numeric" value={form.minutes} errors={errors} onChange={(v) => patch({ minutes: v })} />
+            <TextField id="f-serves" label="Serves" required type="number" inputMode="numeric" min={1} max={100} value={form.serves} errors={errors} hint="How many portions this makes" onChange={(v) => patch({ serves: v })} />
             <TextField id="f-makes" label="Makes" value={form.makes} errors={errors} hint="For example: 24 ladoos" onChange={(v) => patch({ makes: v })} />
             <TextField id="f-team" label="Team" value={form.team} errors={errors} onChange={(v) => patch({ team: v })} />
             <TextField id="f-city" label="City" value={form.city} errors={errors} onChange={(v) => patch({ city: v })} />

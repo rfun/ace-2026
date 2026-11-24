@@ -43,6 +43,9 @@ describe('parseRecipeText: notes-style recipe', () => {
     expect(r.makes).toBe('Serves 4');
     expect(r.totalMinutes).toBe(35);
   });
+  it('reads "Serves 4" as serves: 4 (catches the portion count staying only in the makes text)', () => {
+    expect(r.serves).toBe(4);
+  });
   it('does not invent a story from a recipe with no intro', () => {
     expect(r.story).toBeUndefined();
   });
@@ -133,6 +136,7 @@ Leave a Reply`;
   it('reads label-then-value times and Servings', () => {
     expect(r.totalMinutes).toBe(15);
     expect(r.makes).toBe('Serves 2');
+    expect(r.serves).toBe(2);
   });
   it('lists ingredients and steps, drops "Step 1:" prefixes', () => {
     expect(r.ingredients).toHaveLength(3);
@@ -160,6 +164,7 @@ describe('parseRecipeText: JSON-LD', () => {
     expect(r.title).toBe('Aloo & Gobi');
     expect(r.story).toBe('A weeknight classic.');
     expect(r.makes).toBe('4 servings');
+    expect(r.serves).toBe(4);
     expect(r.totalMinutes).toBe(75);
     expect(r.origin).toBe('Punjabi');
     expect(r.course).toBe('main');
@@ -211,5 +216,26 @@ describe('parseRecipeText: edge cases', () => {
     const r = parseRecipeText(many);
     expect(r.ingredients).toHaveLength(60);
     expect(r.steps).toHaveLength(40);
+  });
+});
+
+describe('parseRecipeText: serves number', () => {
+  const body = (head: string) => `Dal\n${head}\n\nIngredients:\n- 1 cup lentils\n\nMethod\n1. Boil.`;
+  it.each([
+    ['Servings: 6', 6],
+    ['Serves 4 people', 4],
+    ['Serves: 12 servings', 12],
+    ['Serves 4-6', undefined],
+    ['Serves a crowd', undefined],
+    ['Makes 24', undefined],
+    ['Serves 0', undefined],
+  ])('%j gives serves %j (catches a range or word being read as a number, and 0 slipping through)', (head, n) => {
+    expect(parseRecipeText(body(head)).serves).toBe(n);
+  });
+  it('JSON-LD: numeric yield gives serves, a food yield does not', () => {
+    const ld = (y: string) => `<script type="application/ld+json">{"@type":"Recipe","name":"X","recipeYield":${y},"recipeIngredient":["1 egg"],"recipeInstructions":["Cook."]}</script>`;
+    expect(parseRecipeText(ld('4')).serves).toBe(4);
+    expect(parseRecipeText(ld('"6 servings"')).serves).toBe(6);
+    expect(parseRecipeText(ld('"24 ladoos"')).serves).toBeUndefined();
   });
 });

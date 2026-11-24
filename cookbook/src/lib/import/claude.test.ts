@@ -24,6 +24,7 @@ describe('parseWithClaude', () => {
     for (const k of ['vegetarian', 'vegan', 'gluten-free', 'dairy-free', 'nut-free', 'egg-free', 'halal', 'kosher']) expect(prompt).toContain(k);
     expect(prompt).toContain('Dal recipe: boil lentils');
     expect(prompt).toMatch(/never invent/i);
+    expect(prompt).toContain('"serves": integer');
   });
 
   it('passes no images for text-only input', async () => {

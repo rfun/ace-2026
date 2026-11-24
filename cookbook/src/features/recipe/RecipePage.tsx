@@ -6,6 +6,8 @@ import { COURSES, DIETARY, stockClass } from '../../domain/tags';
 import type { Me, Person, Photo, Recipe, Tip, UserId } from '../../domain/types';
 import { TipComposer } from '../tips';
 import { penFor } from './pens';
+import ServingsControl from './ServingsControl';
+import { useServings } from './useServings';
 import './recipe.css';
 
 type Loaded =
@@ -53,6 +55,30 @@ function Shell(props: { tabs: JSX.Element; children: JSX.Element; busy?: boolean
       </nav>
       {props.children}
     </div>
+  );
+}
+
+function Ingredients(props: { recipe: Recipe }): JSX.Element {
+  const { recipe } = props;
+  const sv = useServings(recipe.id, recipe.serves, recipe.ingredients);
+  return (
+    <section aria-labelledby="rc-h-ing" className="rc-sec">
+      <h2 id="rc-h-ing" className="label">
+        Ingredients
+      </h2>
+      {sv.servings !== undefined && (
+        <ServingsControl servings={sv.servings} changed={sv.changed} onChange={sv.set} onReset={sv.reset} />
+      )}
+      <ul className={`rc-ing${sv.hasUnscaled ? ' rc-ing-noted' : ''}`}>
+        {sv.scaled.map((ing, i) => (
+          <li key={i}>
+            <span className="rc-qty">{ing.quantity}</span>
+            <span>{ing.item}</span>
+          </li>
+        ))}
+      </ul>
+      {sv.hasUnscaled && <p className="rc-note">Amounts without a number aren&apos;t scaled</p>}
+    </section>
   );
 }
 
@@ -246,19 +272,7 @@ export default function RecipePage(props: { id: string; onAddTip?: () => void })
               <p className="rc-story">{recipe.story}</p>
             </section>
 
-            <section aria-labelledby="rc-h-ing" className="rc-sec">
-              <h2 id="rc-h-ing" className="label">
-                Ingredients
-              </h2>
-              <ul className="rc-ing">
-                {recipe.ingredients.map((ing, i) => (
-                  <li key={i}>
-                    <span className="rc-qty">{ing.quantity}</span>
-                    <span>{ing.item}</span>
-                  </li>
-                ))}
-              </ul>
-            </section>
+            <Ingredients recipe={recipe} />
 
             <section aria-labelledby="rc-h-steps" className="rc-sec">
               <h2 id="rc-h-steps" className="label">
