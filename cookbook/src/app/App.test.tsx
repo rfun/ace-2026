@@ -48,6 +48,27 @@ describe('App shell', () => {
     expect(screen.getByText('ACE Culture Cookbook')).toBeInTheDocument();
   });
 
+  // Catches: logo dropped, wrong alt, or header no longer linking home.
+  it('header shows the logo with alt "ACE" and links to #/', () => {
+    renderApp();
+    const img = screen.getByAltText('ACE');
+    expect(img.tagName).toBe('IMG');
+    const link = img.closest('a');
+    expect(link).not.toBeNull();
+    expect(link!.getAttribute('href')).toBe('#/');
+  });
+
+  // Catches: header link dead (preventDefault without navigating).
+  it('clicking the header goes back to browse', async () => {
+    renderApp();
+    await goTo('#/compose');
+    expectOnly('compose');
+    await act(async () => {
+      screen.getByAltText('ACE').click();
+    });
+    expect(window.location.hash).toBe('#/');
+  });
+
   // Catches: default route not mapping to browse.
   it('shows only browse at #/', () => {
     renderApp();

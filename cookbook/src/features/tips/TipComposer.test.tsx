@@ -6,6 +6,7 @@ import { createMockStore } from '../../data/mock/mockStore';
 import type { Me } from '../../domain/types';
 import { TipComposer } from './TipComposer';
 import * as tipsIndex from './index';
+import * as resizeMod from '../../lib/image/resize';
 
 const writer: Me = { id: 'u-you', canWrite: true, canModerate: false };
 const viewer: Me = { id: 'u-you', canWrite: false, canModerate: false };
@@ -163,6 +164,25 @@ describe('TipComposer', () => {
     fireEvent.click(submitBtn());
     await waitFor(() => expect(addSpy).toHaveBeenCalled());
     expect(addSpy.mock.calls[0][1].photo?.alt).toBe('A tin of ladoo');
+  });
+
+  // Catches: the raw file being uploaded instead of the resized blob.
+  it('uploads the resized blob, not the original file', async () => {
+    const store = createMockStore({ me: writer, recipes: [], tips: [] });
+    const small = new Blob(['tiny'], { type: 'image/jpeg' });
+    const rs = vi.spyOn(resizeMod, 'resizeImage').mockResolvedValue(small);
+    const up = vi.spyOn(store, 'uploadPhoto');
+    URL.createObjectURL = vi.fn(() => 'blob:fake');
+    const { onDone } = mount(store);
+    await type('with photo');
+    const original = png('big.png');
+    fireEvent.change(await screen.findByLabelText('Photo (optional)'), { target: { files: [original] } });
+    fireEvent.change(screen.getByLabelText('Describe the photo'), { target: { value: 'A tin' } });
+    fireEvent.click(submitBtn());
+    await waitFor(() => expect(onDone).toHaveBeenCalled());
+    expect(rs).toHaveBeenCalledWith(original);
+    expect(up.mock.calls[0][0]).toBe(small);
+    expect(up.mock.calls[0][0]).not.toBe(original);
   });
 
   it('accepts exactly 20 MiB but rejects 20 MiB + 1 (catches an off-by-one on the size limit)', async () => {

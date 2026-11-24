@@ -1,11 +1,11 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { useStore } from '../../data/StoreProvider';
 import type { Me, Photo, Tip } from '../../domain/types';
+import { ImageTooLargeError, MAX_UPLOAD_BYTES, resizeImage } from '../../lib/image/resize';
 import { penFor } from '../recipe/pens';
 import './tips.css';
 
 export const TIP_MAX_CHARS = 600;
-export const TIP_MAX_PHOTO_BYTES = 20 * 1024 * 1024;
 
 export interface TipComposerProps { recipeId: string; onDone: (tip: Tip) => void; onCancel: () => void }
 
@@ -65,7 +65,7 @@ export function TipComposer({ recipeId, onDone, onCancel }: TipComposerProps): J
   function pickFile(f: File | null) {
     setPhotoError('');
     if (!f) return;
-    if (f.size > TIP_MAX_PHOTO_BYTES) {
+    if (f.size > MAX_UPLOAD_BYTES) {
       setPhotoError('That photo is over 20 MB. Pick a smaller one.');
       if (fileRef.current) fileRef.current.value = '';
       return;
@@ -98,14 +98,15 @@ export function TipComposer({ recipeId, onDone, onCancel }: TipComposerProps): J
     setBusy(true);
     try {
       let photo: Photo | undefined;
-      if (file) photo = await store.uploadPhoto(file, alt.trim());
+      if (file) photo = await store.uploadPhoto(await resizeImage(file), alt.trim());
       const tip = await store.addTip(recipeId, { text: body, photo });
       if (alive.current) setBusy(false);
       onDone(tip);
-    } catch {
+    } catch (err) {
       if (alive.current) {
         setBusy(false);
-        setTextError("Couldn't pin your tip. It's still here.");
+        if (err instanceof ImageTooLargeError) setPhotoError('That photo is over 20 MB. Pick a smaller one.');
+        else setTextError("Couldn't pin your tip. It's still here.");
       }
     }
   }

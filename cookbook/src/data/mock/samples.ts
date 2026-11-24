@@ -9,6 +9,18 @@ export const SAMPLE_PEOPLE: Person[] = [
   { id: 'u-riley', name: 'Riley Example' },
 ];
 
+/** Small illustrative SVG (a plate silhouette in the palette). Clearly a drawing, not a photo. */
+function plateSvg(bg: string, food: string): string {
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">` +
+    `<rect width="400" height="300" fill="${bg}"/>` +
+    `<ellipse cx="200" cy="160" rx="150" ry="100" fill="#fbf7ee" stroke="#c69c6d" stroke-width="6"/>` +
+    `<ellipse cx="200" cy="160" rx="105" ry="68" fill="none" stroke="#9fb7d6" stroke-width="3"/>` +
+    `<circle cx="170" cy="155" r="26" fill="${food}"/><circle cx="215" cy="150" r="26" fill="${food}"/>` +
+    `<circle cx="195" cy="185" r="26" fill="${food}"/></svg>`;
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}
+
 const DAY = 86_400_000;
 const T0 = Date.UTC(2026, 9, 1);
 
@@ -36,11 +48,24 @@ export const SAMPLE_RECIPES: Recipe[] = [
     ],
     steps: [
       { id: 's1', text: 'Melt the ghee in a heavy pan over low heat.' },
-      { id: 's2', text: 'Add the besan and roast, stirring constantly, 15-20 minutes until nutty and golden.' },
+      {
+        id: 's2',
+        text: 'Add the besan and roast, stirring constantly, 15-20 minutes until nutty and golden.',
+        photo: {
+          assetId: 'sample-ladoo-step',
+          url: plateSvg('#cfe0f1', '#e0b252'),
+          alt: 'Illustration of golden roasted besan on a plate (sample drawing, not a real photo)',
+        },
+      },
       { id: 's3', text: 'Take off the heat and let it cool until just warm.' },
       { id: 's4', text: 'Stir in the sugar and cardamom.' },
       { id: 's5', text: 'Shape into walnut-sized balls and press a pistachio piece on top.' },
     ],
+    mainPhoto: {
+      assetId: 'sample-ladoo-main',
+      url: plateSvg('#f6e7a1', '#c69c6d'),
+      alt: 'Illustration of a plate with three round ladoo (sample drawing, not a real photo)',
+    },
     createdAt: T0,
     updatedAt: T0,
     sample: true,
@@ -69,6 +94,11 @@ export const SAMPLE_RECIPES: Recipe[] = [
       { id: 's2', text: 'Simmer, stirring now and then, until the rice breaks down, about 50 minutes.' },
       { id: 's3', text: 'Season with salt and serve hot.' },
     ],
+    mainPhoto: {
+      assetId: 'sample-congee-main',
+      url: plateSvg('#cfe6d3', '#eadfc8'),
+      alt: 'Illustration of a plate with a bowl of congee (sample drawing, not a real photo)',
+    },
     createdAt: T0 + DAY,
     updatedAt: T0 + DAY,
     sample: true,

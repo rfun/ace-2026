@@ -122,6 +122,16 @@ describe('persist', () => {
     expect((await b.getRecipe(saved.id))?.title).toBe('Kept');
     expect((await b.listTips(saved.id)).map((t) => t.text)).toEqual(['kept tip']);
   });
+  // Catches: persist branch ignoring opts.recipes/opts.tips when storage is empty.
+  it('persist with empty storage seeds from opts, and stored state wins afterwards', async () => {
+    const a = createMockStore({ persist: true, recipes: [recipe('seed', 'u-you')], tips: [tip('ts', 'seed', 5)] });
+    expect((await a.getRecipe('seed'))?.title).toBe('T-seed');
+    expect((await a.listTips('seed')).map((t) => t.id)).toEqual(['ts']);
+    await a.addTip('seed', { text: 'w' }); // first write persists
+    const b = createMockStore({ persist: true, recipes: [recipe('other', 'u-you')], tips: [] });
+    expect(await b.getRecipe('other')).toBeNull();
+    expect((await b.getRecipe('seed'))?.title).toBe('T-seed');
+  });
   it('without persist, a new instance starts fresh', async () => {
     const a = createMockStore({ recipes: [], tips: [] });
     const saved = await a.saveRecipe(draft('Gone'));
