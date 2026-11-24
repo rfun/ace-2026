@@ -276,7 +276,7 @@ export default function ComposePage(props: { id?: string }): JSX.Element {
       />
     );
   }
-  if (recipe && recipe.authorId !== me.id && !me.canModerate) {
+  if (recipe && recipe.authorId !== me.id) {
     return (
       <Notice
         tab={tab}

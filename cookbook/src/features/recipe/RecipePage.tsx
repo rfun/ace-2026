@@ -188,7 +188,7 @@ export default function RecipePage(props: { id: string; onAddTip?: () => void })
     recipe.totalMinutes !== undefined ? formatMinutes(recipe.totalMinutes) : undefined,
   ].filter((x): x is string => Boolean(x));
 
-  const canEdit = me.canWrite && (me.id === recipe.authorId || me.canModerate);
+  const canEdit = me.canWrite && me.id === recipe.authorId;
 
   const tabs = (
     <>
@@ -285,7 +285,7 @@ export default function RecipePage(props: { id: string; onAddTip?: () => void })
             ) : (
               <ul className="rc-tips">
                 {tips.map((tip, i) => (
-                  <li key={tip.id} className={`rc-tip rc-pen-${penFor(tip.authorId)} rc-tilt-${i % 3}${tip.id === justAdded ? ' rc-tip-new' : ''}`}>
+                  <li key={tip.id} className={`rc-tip pen-${penFor(tip.authorId)} rc-tilt-${i % 3}${tip.id === justAdded ? ' rc-tip-new' : ''}`}>
                     {tip.hidden && <span className="rc-hidden-note">Hidden from others</span>}
                     <p className="rc-hand">{tip.text}</p>
                     {tip.photo && <Snapshot photo={tip.photo} className="rc-snap-tip" />}

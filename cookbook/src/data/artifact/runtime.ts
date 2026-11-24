@@ -13,6 +13,8 @@ export interface DbQuerySnapshot {
 export interface DbDocRef {
   get(): Promise<DbSnapshotDoc>;
   set(data: Record<string, unknown>): Promise<void>;
+  /** Merge-write; nested objects merge recursively, arrays replace. Rejects if the document does not exist. */
+  update(data: Record<string, unknown>): Promise<void>;
   onSnapshot(next: (snap: DbSnapshotDoc) => void, error?: (e: unknown) => void): () => void;
 }
 export interface DbCollectionRef {
@@ -45,7 +47,15 @@ export interface ArtifactRuntime {
   user: UserLike;
 }
 
-/** Capabilities the published page declares (used by the publish step). */
+/**
+ * Capabilities the published page declares (used by the publish step).
+ *
+ * Moderation note: hiding is display-level only. Hidden items stay readable
+ * through the db API by any signed-in member (rules give everyone `view` read);
+ * the app just filters them out for non-moderators. Removal by an editor is
+ * possible because editors hold the `admin` write level, which meets the
+ * `admin` write rule on the `recipes` and `tips` prefixes.
+ */
 export const CAPABILITIES = {
   db: {
     rules: [

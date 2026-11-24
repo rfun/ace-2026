@@ -135,7 +135,7 @@ export function TipComposer({ recipeId, onDone, onCancel }: TipComposerProps): J
       <textarea
         id={`${uid}-text`}
         ref={areaRef}
-        className={`tips-area tips-pen-${pen}`}
+        className={`tips-area pen-${pen}`}
         rows={5}
         value={text}
         maxLength={TIP_MAX_CHARS}

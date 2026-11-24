@@ -2,16 +2,16 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './app/App';
 import { StoreProvider } from './data/StoreProvider';
-import { chooseStore } from './data/artifact/chooseStore';
+import { chooseStore, OFFLINE_NOTICE } from './data/artifact/chooseStore';
 
 const root = createRoot(document.getElementById('root')!);
 
 // A blank enamel shell (the body background) shows while the store is chosen: no spinner.
-chooseStore().then((store) => {
+chooseStore().then(({ store, status }) => {
   root.render(
     <StrictMode>
       <StoreProvider store={store}>
-        <App />
+        <App notice={status === 'offline' ? OFFLINE_NOTICE : undefined} />
       </StoreProvider>
     </StrictMode>,
   );

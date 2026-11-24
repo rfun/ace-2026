@@ -14,10 +14,10 @@ vi.mock('../features/kitchen', () => ({ default: () => <p>screen:kitchen</p> }))
 
 const MARKERS = ['browse', 'recipe', 'compose', 'kitchen'] as const;
 
-function renderApp() {
+function renderApp(notice?: string) {
   return render(
     <StoreProvider store={createMockStore()}>
-      <App />
+      <App notice={notice} />
     </StoreProvider>,
   );
 }
@@ -40,6 +40,15 @@ function expectOnly(name: (typeof MARKERS)[number]): void {
 describe('App shell', () => {
   beforeEach(() => {
     window.location.hash = '#/';
+  });
+
+  // Catches: the offline notice not reaching the shell, or a notice appearing when none was passed.
+  it('shows the notice when given and nothing when not', () => {
+    const { unmount } = renderApp();
+    expect(screen.queryByRole('status')).toBeNull();
+    unmount();
+    renderApp("Couldn't reach the cookbook's shared storage. Reload to try again.");
+    expect(screen.getByRole('status')).toHaveTextContent("Couldn't reach the cookbook's shared storage. Reload to try again.");
   });
 
   // Catches: header removed or renamed.

@@ -189,6 +189,31 @@ describe('moderation', () => {
     await store.setHidden('recipe', 'r1', false);
     expect(rt.docs.get('moderation/hidden')).toEqual({ recipes: { r2: true }, tips: { t1: true } });
   });
+  // Catches: setHidden overwriting the whole document (losing a concurrent hide) when a merge is available.
+  it('setHidden merges the single key with update() when the document exists, without set()', async () => {
+    const rt = createFakeRuntime({ canEdit: true });
+    seed(rt);
+    await createArtifactStore(rt).setHidden('tip', 't9', true);
+    expect(rt.setCalls).toEqual(['moderation/hidden#update']);
+    expect(rt.docs.get('moderation/hidden')).toEqual({ recipes: { r1: true }, tips: { t1: true, t9: true } });
+  });
+  // Catches: update() on a missing document (the runtime rejects invalid_argument), so the first ever hide fails.
+  it('setHidden creates the document with set() on the first hide', async () => {
+    const rt = createFakeRuntime({ canEdit: true });
+    await createArtifactStore(rt).setHidden('recipe', 'r5', true);
+    expect(rt.setCalls).toEqual(['moderation/hidden']);
+    expect(rt.docs.get('moderation/hidden')).toEqual({ recipes: { r5: true }, tips: {} });
+  });
+  // Catches: unhide implemented as a merge (which cannot delete a key) or from a stale read.
+  it('setHidden unhide re-reads the document and removes only that key', async () => {
+    const rt = createFakeRuntime({ canEdit: true });
+    rt.docs.set('moderation/hidden', { recipes: { a: true, b: true }, tips: { t: true } });
+    const store = createArtifactStore(rt);
+    await store.setHidden('recipe', 'a', false);
+    rt.docs.set('moderation/hidden', { recipes: { b: true, c: true }, tips: { t: true } }); // another moderator hid c
+    await store.setHidden('recipe', 'b', false);
+    expect(rt.docs.get('moderation/hidden')).toEqual({ recipes: { c: true }, tips: { t: true } });
+  });
   it('ignores malformed moderation doc values', async () => {
     const rt = createFakeRuntime();
     rt.docs.set('recipes/u2', { items: [storedRecipe('r1', 1)] });

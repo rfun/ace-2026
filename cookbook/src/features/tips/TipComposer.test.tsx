@@ -142,9 +142,9 @@ describe('TipComposer', () => {
     await waitFor(() => expect(onDone).toHaveBeenCalledTimes(1));
   });
 
-  it('index re-exports TipComposer and keeps a default export (catches App routing or import breakage)', () => {
+  it('index re-exports TipComposer and has no stub default export (catches the placeholder screen coming back)', () => {
     expect(tipsIndex.TipComposer).toBe(TipComposer);
-    expect(typeof tipsIndex.default).toBe('function');
+    expect(Object.keys(tipsIndex)).toEqual(['TipComposer']);
   });
 
   it('a chosen photo without alt text blocks submit (catches inaccessible photos)', async () => {
