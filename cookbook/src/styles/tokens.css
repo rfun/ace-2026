@@ -1,0 +1,10 @@
+:root {
+  --enamel: #1f4f4a; --enamel-deep: #163b37; --kraft: #c69c6d; --kraft-ink: #4a3420;
+  --card: #fbf7ee; --rule: #9fb7d6; --margin: #d2493f; --ink: #23305c; --ink-soft: #4b5577;
+  --stock-canary: #f6e7a1; --stock-blush: #f3cfc6; --stock-mint: #cfe6d3; --stock-sky: #cfe0f1;
+  --pen-navy: #23305c; --pen-green: #2f6b3f; --pen-violet: #8a2d5c; --pen-graphite: #55585e;
+  --font-typed: "Courier Prime", ui-monospace, monospace;
+  --font-read: "Literata", "Noto Serif", Georgia, serif;
+  --font-hand: "Caveat", "Segoe Print", cursive;
+  --rule-gap: 32px; --radius-card: 6px;
+}

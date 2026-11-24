@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Besan Ladoo - Recipe Card Tin</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Kalam:wght@400;700&family=Source+Serif+4:wght@400;600&family=Special+Elite&family=Work+Sans:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{--cream:#fbf7ee;--rule:#9fb7d6;--red:#d2493f;--navy:#23305c;--kraft:#c69c6d;--kraft-d:#8a6538;--tin:#2b2f36}
+html,body{width:1440px;height:900px;overflow:hidden;margin:0}
+body{background:var(--tin);background-image:radial-gradient(ellipse at 50% 30%,#3a3f48,#23262c);font-family:"Source Serif 4",Georgia,serif;color:var(--navy);position:relative}
+a{color:inherit;text-decoration:none}
+.bar{position:absolute;top:0;left:0;width:1440px;height:56px;display:flex;align-items:center;padding:0 48px;box-sizing:border-box;color:#f1e9d8;font-family:"Work Sans",sans-serif;font-weight:500;font-size:16px;border-bottom:1px solid #4a4f58}
+.bar .brand{display:flex;align-items:center;gap:12px;font-weight:600;font-size:18px;margin-right:40px}
+.mark{background:var(--red);color:#fff;font-weight:600;font-size:15px;letter-spacing:.12em;padding:4px 9px;border-radius:3px}
+.bar .back{border:1px solid #8b8f98;padding:6px 14px;border-radius:20px}
+.bar .jump{margin-left:auto;display:flex;gap:10px;align-items:center}
+.bar .jump span{opacity:.75;margin-right:6px}
+.bar .jump a{background:var(--kraft);color:#2a1d0c;padding:6px 14px;border-radius:4px}
+.tabs{position:absolute;left:120px;top:72px;display:flex;gap:6px;font-family:"Work Sans",sans-serif;font-weight:600;font-size:15px}
+.tabs a{background:var(--kraft);color:#2a1d0c;padding:9px 20px 8px;border-radius:9px 9px 0 0;box-shadow:inset 0 -6px 8px -6px rgba(90,60,20,.5);margin-top:6px}
+.tabs a.on{background:var(--cream);margin-top:0;padding-top:15px;box-shadow:none;color:var(--navy)}
+.tabs a:nth-child(2){margin-left:10px}.tabs a:nth-child(3){margin-left:4px}
+.card{position:absolute;left:120px;top:114px;width:1200px;height:800px;background-color:var(--cream);border-radius:4px 10px 0 0;box-shadow:0 18px 40px rgba(0,0,0,.5);
+ background-image:repeating-linear-gradient(to bottom,transparent 0 31px,var(--rule) 31px 32px)}
+.card::before{content:"";position:absolute;left:260px;top:0;bottom:0;width:2px;background:var(--red)}
+.card::after{content:"";position:absolute;left:0;top:0;width:1200px;height:160px;background:var(--cream)}
+.card>*{z-index:1}
+.margin{position:absolute;left:0;top:176px;width:260px;box-sizing:border-box;padding:0 22px 0 24px}
+.body{position:absolute;left:290px;top:160px;width:570px}
+.side{position:absolute;left:896px;top:160px;width:276px}
+.head{position:absolute;z-index:2;left:290px;top:0;width:880px;height:160px}
+h1{font:400 58px/64px "Special Elite",monospace;margin:0;letter-spacing:-.01em}
+.head p{margin:0;font-size:17px;line-height:32px}
+.head .by{font-family:"Special Elite",monospace;font-size:18px}
+.head .meta{font-family:"Work Sans",sans-serif;font-weight:500;font-size:15px;color:#3d4a78}
+.stamps{position:absolute;right:0;top:6px;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+.stamp{font:700 14px/1 "Work Sans",sans-serif;letter-spacing:.1em;border:2.5px solid #7a2f6e;color:#7a2f6e;padding:6px 10px;border-radius:5px;transform:rotate(-3deg);background:rgba(122,47,110,.04);text-transform:uppercase}
+.stamp.b{border-color:#1f5e57;color:#1f5e57;transform:rotate(2deg)}
+.stamp.s{border:1.5px dashed var(--navy);color:var(--navy);font-size:12px;transform:rotate(0);padding:5px 8px}
+.lbl{font:400 17px/32px "Special Elite",monospace;text-transform:uppercase;letter-spacing:.14em;color:var(--red);display:block}
+.story{font-size:17px;line-height:32px;margin:0}
+ol{margin:0;padding:0;list-style:none;counter-reset:s}
+ol li{font-size:17px;line-height:32px;padding-left:38px;position:relative;counter-increment:s}
+ol li::before{content:counter(s);position:absolute;left:4px;font:700 20px/32px Kalam,cursive;color:var(--red)}
+.ph{height:224px;border-radius:3px;background:linear-gradient(135deg,#e1a24a,#b8602a 60%,#8e4420);position:relative;transform:rotate(1.2deg);box-shadow:0 2px 6px rgba(0,0,0,.3);border:6px solid #fff;box-sizing:border-box;margin-top:0}
+.ph i,.th i{position:absolute;right:8px;bottom:6px;font:600 12px "Work Sans",sans-serif;color:#fff;font-style:normal;letter-spacing:.08em;text-transform:uppercase}
+.ing{list-style:none;margin:0;padding:0}
+.ing li{font-size:17px;line-height:32px;white-space:nowrap}
+.ing b{font:700 19px Kalam,cursive;color:#1d3f8f;display:inline-block;width:78px}
+.note{font-family:Kalam,Caveat,cursive;position:relative;margin-bottom:22px}
+.note p{margin:0;font-size:19px;line-height:26px}
+.note small{display:block;font:600 22px/24px Caveat,cursive;margin-top:3px;text-align:right}
+.n1{color:#1d3f8f;transform:rotate(-2.2deg)}.n2{color:#a3261e;transform:rotate(1.8deg)}.n3{color:#2b6a3f;transform:rotate(-1.2deg)}
+.n1::after{content:"";position:absolute;left:-6px;right:-4px;top:-6px;height:20px;background:rgba(198,156,109,.55);transform:rotate(-2deg);z-index:-1}
+.th{position:relative;border:6px solid #fff;box-sizing:border-box;border-radius:3px;background:linear-gradient(135deg,#e1a24a,#b8602a);box-shadow:0 2px 6px rgba(0,0,0,.3);transform:rotate(-1deg)}
+.more{font:600 22px/26px Caveat,cursive;color:#4a4a5a;transform:rotate(1deg);margin:0 0 14px}
+.add{display:inline-block;background:var(--navy);color:#fbf7ee;font:600 15px "Work Sans",sans-serif;padding:10px 18px;border-radius:4px;box-shadow:2px 3px 0 var(--kraft)}
+.hole{display:none;position:absolute;left:100px;width:26px;height:26px;border-radius:50%;background:var(--tin);box-shadow:inset 0 3px 5px rgba(0,0,0,.6);z-index:3}
+</style></head><body>
+<div class="bar"><div class="brand"><span class="mark">ACE</span>ACE Culture Cookbook</div><a class="back" href="#">&larr; All recipes</a>
+<div class="jump"><span>Jump to</span><a href="#i">Ingredients</a><a href="#s">Steps</a><a href="#t">Tips</a></div></div>
+<nav class="tabs"><a href="#">All recipes</a><a href="#">Punjab, India</a><a class="on" href="#">Diwali</a><a href="#">Sweets</a></nav>
+<main class="card">
+ <header class="head">
+  <h1>Besan Ladoo</h1>
+  <p class="by">From the kitchen of Jordan Example (sample)</p>
+  <p>Revenue Cycle, Salt Lake City</p>
+  <p class="meta">Punjab, India &middot; Diwali &middot; Sweets &middot; Makes 16 &middot; 40 min</p>
+  <div class="stamps"><span class="stamp s">Sample recipe</span><span class="stamp">&#10003; Vegetarian</span><span class="stamp b">&#8856; Gluten-free</span></div>
+ </header>
+ <section class="margin" id="t"><span class="lbl" style="margin-left:-2px;font-size:15px;color:var(--navy)">Tips from the tin</span>
+  <div class="note n1"><p>Roast on the lowest flame. Patience is the whole recipe.</p><small>&mdash; Sam Example (sample)</small></div>
+  <div class="note n2"><p>A pinch of salt makes the cardamom sing.</p><small>&mdash; Lee Example (sample)</small></div>
+  <p class="more">+1 more tip &rarr;</p>
+  <a class="add" href="#">+ Add your tip</a>
+ </section>
+ <section class="body">
+  <p class="story" style="margin-top:0">My grandmother made these every Diwali, and the whole house smelled of roasting gram flour for days. She never measured anything; this is my best attempt at writing her hands down.</p>
+  <span class="lbl" id="i" style="margin-top:32px">Ingredients</span>
+  <ul class="ing"><li><b>2 cups</b>besan (gram flour)</li><li><b>1/2 cup</b>ghee</li><li><b>3/4 cup</b>powdered sugar</li><li><b>1/2 tsp</b>ground cardamom</li><li><b>2 tbsp</b>chopped pistachios</li></ul>
+  <span class="lbl" id="s" style="margin-top:32px">Steps</span>
+  <ol><li>Melt the ghee in a heavy pan over low heat.</li>
+  <li>Add the besan and roast, stirring constantly, 15-20 minutes until nutty and golden.</li>
+  <li>Take off the heat and let it cool until just warm.</li>
+  <li>Stir in the sugar and cardamom.</li>
+  <li>Shape into walnut-sized balls and press a pistachio piece on top.</li></ol>
+ </section>
+ <aside class="side">
+  <div class="ph"><i>photo</i></div>
+  <div class="th" style="margin-top:32px;height:128px"><i>step 2 photo</i></div>
+  <div class="th" style="margin-top:32px;height:128px;background:linear-gradient(135deg,#d9a35c,#a5642d)"><i>step 5 photo</i></div>
+ </aside>
+</main>
+</body></html>
