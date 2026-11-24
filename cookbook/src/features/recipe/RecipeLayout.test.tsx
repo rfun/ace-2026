@@ -65,9 +65,16 @@ describe('Edit this card', () => {
     expect(window.location.hash).toBe(`#/compose/${ID}`);
   });
 
-  // Catches: moderators locked out of editing.
-  it('shows to a moderator who is not the author', async () => {
+  // Catches: moderators regaining the ability to edit other people's recipe text.
+  it('is hidden from a moderator who is not the author', async () => {
     mount({ id: 'u-mod', canWrite: true, canModerate: true });
+    await screen.findByRole('heading', { level: 1 });
+    expect(edit()).toBeNull();
+  });
+
+  // Catches: the author-only gate dropping canModerate-independence (an author who is also a moderator keeps Edit).
+  it('shows to an author who is also a moderator', async () => {
+    mount({ id: AUTHOR, canWrite: true, canModerate: true });
     await screen.findByRole('heading', { level: 1 });
     expect(edit()).not.toBeNull();
   });
@@ -86,9 +93,9 @@ describe('Edit this card', () => {
     expect(edit()).toBeNull();
   });
 
-  // Catches: the canWrite gate being dropped for a moderator.
-  it('is hidden from a moderator when they cannot write', async () => {
-    mount({ id: 'u-mod', canWrite: false, canModerate: true });
+  // Catches: the canWrite gate being dropped for a read-only author.
+  it('is hidden from an author who is also a moderator when they cannot write', async () => {
+    mount({ id: AUTHOR, canWrite: false, canModerate: true });
     await screen.findByRole('heading', { level: 1 });
     expect(edit()).toBeNull();
   });

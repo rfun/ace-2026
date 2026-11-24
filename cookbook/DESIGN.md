@@ -34,7 +34,7 @@ Course stocks. Each course in `COURSES` (`src/domain/tags.ts`) names a stock; `s
 | `--stock-mint` / `.stock-mint` | #cfe6d3 | side, condiment |
 | `--stock-sky` / `.stock-sky` | #cfe0f1 | drink |
 
-Pens (tip handwriting). `penFor(userId)` hashes a user id onto four fixed pens: `--pen-navy` #23305c, `--pen-green` #2f6b3f, `--pen-violet` #8a2d5c, `--pen-graphite` #55585e. Used by `.rc-pen-*` (shown tips) and `.tips-pen-*` (composer). Pens are 4.4:1 or better on every stock and 6.0:1 or better on card, where tips are written. Pen assignment by hash (not user choice) is the build's answer to the open question.
+Pens (tip handwriting). `penFor(userId)` hashes a user id onto four fixed pens: `--pen-navy` #23305c, `--pen-green` #2f6b3f, `--pen-violet` #8a2d5c, `--pen-graphite` #55585e. Used by the shared `.pen-*` classes in `components.css` (shown tips and the composer). Pens are 4.4:1 or better on every stock and 6.0:1 or better on card, where tips are written. Pen assignment by hash (not user choice) is the build's answer to the open question.
 
 Stamp inks, one fixed ink per dietary tag (`DIETARY`): `--stamp-green` vegetarian, `--stamp-olive` vegan, `--stamp-umber` gluten-free, `--stamp-navy` dairy-free, `--stamp-rust` nut-free, `--stamp-graphite` egg-free, `--stamp-teal` halal, `--stamp-violet` kosher. Each is 4.5:1 or better on card and all stocks (test).
 

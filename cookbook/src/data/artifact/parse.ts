@@ -13,8 +13,11 @@ const str = (v: unknown): v is string => typeof v === 'string';
 const num = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
 const optStr = (v: unknown): string | undefined => (str(v) && v !== '' ? v : undefined);
 
+// Asset ids end up in a URL path: accept only a conservative token (no slashes, dots or empties).
+const ASSET_ID = /^[A-Za-z0-9_-]{1,128}$/;
+
 function parsePhoto(v: unknown): Photo | undefined {
-  if (!isObj(v) || !str(v.assetId) || v.assetId === '') return undefined;
+  if (!isObj(v) || !str(v.assetId) || !ASSET_ID.test(v.assetId)) return undefined;
   return { assetId: v.assetId, url: blobUrl(v.assetId), alt: str(v.alt) ? v.alt : '' };
 }
 

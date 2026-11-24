@@ -21,6 +21,16 @@ export interface FakeOptions {
   names?: Record<string, string>;
 }
 
+// Mirrors the runtime's `update`: nested objects merge recursively, anything else replaces.
+function mergeDeep(base: Record<string, unknown>, patch: Record<string, unknown>): Record<string, unknown> {
+  for (const [k, v] of Object.entries(patch)) {
+    const b = base[k];
+    const plain = (x: unknown): x is Record<string, unknown> => typeof x === 'object' && x !== null && !Array.isArray(x);
+    base[k] = plain(v) && plain(b) ? mergeDeep(b, v) : v;
+  }
+  return base;
+}
+
 export function createFakeRuntime(opts: FakeOptions = {}): FakeRuntime {
   const docs = new Map<string, Record<string, unknown>>();
   const subs = new Set<() => void>();
@@ -49,6 +59,13 @@ export function createFakeRuntime(opts: FakeOptions = {}): FakeRuntime {
         set: async (data) => {
           setCalls.push(path);
           docs.set(path, structuredClone(data));
+          fire();
+        },
+        update: async (data) => {
+          const cur = docs.get(path);
+          if (!cur) throw new Error('invalid_argument');
+          setCalls.push(path + '#update');
+          docs.set(path, mergeDeep(structuredClone(cur), structuredClone(data)));
           fire();
         },
         onSnapshot: (next) => listen(() => next(snapOf(path))),

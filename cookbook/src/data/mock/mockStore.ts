@@ -100,7 +100,7 @@ export function createMockStore(opts: MockStoreOptions = {}): DataStore {
       const idx = state.recipes.findIndex((x) => x.id === id);
       if (idx === -1) throw new Error('not found');
       const existing = state.recipes[idx];
-      if (existing.authorId !== me.id && !me.canModerate) throw new Error('forbidden');
+      if (existing.authorId !== me.id) throw new Error('not-author');
       const updated: Recipe = {
         ...fields,
         id: existing.id,

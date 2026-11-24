@@ -172,11 +172,20 @@ export function createArtifactStore(rt: ArtifactRuntime): DataStore {
       if (!db) throw new Error('read-only');
       const me = await loadMe();
       if (!me.canModerate) throw new Error('not-moderator');
-      const current = await readHidden(db);
       const key = kind === 'recipe' ? 'recipes' : 'tips';
+      const ref = db.doc(HIDDEN_PATH);
+      const snap = await ref.get();
+      if (hidden && snap.exists) {
+        // Field-level merge: touches only this one key, so a concurrent hide of another item is not lost.
+        await ref.update({ [key]: { [id]: true } });
+        return;
+      }
+      // First hide (document absent, `update` would reject) and every unhide (a merge cannot delete a key):
+      // read-modify-write of the freshly read document.
+      const current = parseHidden(snap.exists ? snap.data() : undefined);
       if (hidden) current[key][id] = true;
       else delete current[key][id];
-      await db.doc(HIDDEN_PATH).set({ recipes: current.recipes, tips: current.tips });
+      await ref.set({ recipes: current.recipes, tips: current.tips });
     },
 
     async uploadPhoto(file: Blob, alt: string): Promise<Photo> {

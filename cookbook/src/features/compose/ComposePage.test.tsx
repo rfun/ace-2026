@@ -11,6 +11,7 @@ const ID = 'r-besan-ladoo'; // authored by u-jordan
 const author: Me = { id: 'u-jordan', canWrite: true, canModerate: false };
 const stranger: Me = { id: 'u-you', canWrite: true, canModerate: false };
 const mod: Me = { id: 'u-you', canWrite: true, canModerate: true };
+const authorMod: Me = { id: 'u-jordan', canWrite: true, canModerate: true };
 const reader: Me = { id: 'u-you', canWrite: false, canModerate: false };
 
 function mount(store: DataStore, id?: string) {
@@ -63,14 +64,20 @@ describe('ComposePage access', () => {
     expect(screen.queryByRole('button', { name: 'Save recipe' })).toBeNull();
   });
 
-  it('blocks a non-author non-moderator from editing (catches missing ownership check)', async () => {
+  it('blocks a non-author from editing (catches missing ownership check)', async () => {
     mount(createMockStore({ me: stranger }), ID);
     expect(await screen.findByText('Only the person who added this recipe can edit it.')).toBeInTheDocument();
     expect(screen.queryByLabelText(/^Title/)).toBeNull();
   });
 
-  it('lets a moderator edit someone else’s recipe (catches the moderator override being dropped)', async () => {
-    await ready(createMockStore({ me: mod }), ID);
+  it('blocks a moderator who is not the author from editing (catches the moderator override coming back)', async () => {
+    mount(createMockStore({ me: mod }), ID);
+    expect(await screen.findByText('Only the person who added this recipe can edit it.')).toBeInTheDocument();
+    expect(screen.queryByLabelText(/^Title/)).toBeNull();
+  });
+
+  it('lets an author who is also a moderator edit their own recipe', async () => {
+    await ready(createMockStore({ me: authorMod }), ID);
     expect(screen.getByLabelText(/^Title/)).toHaveValue('Besan Ladoo');
   });
 
@@ -164,7 +171,7 @@ describe('ComposePage saving', () => {
   });
 
   it('edit mode loads existing values and saves changes while keeping hidden and sample (catches losing flags or the id)', async () => {
-    const store = createMockStore({ me: mod });
+    const store = createMockStore({ me: authorMod });
     await store.setHidden('recipe', ID, true);
     await ready(store, ID);
     expect(screen.getByLabelText(/^Culture or region/)).not.toHaveValue('');

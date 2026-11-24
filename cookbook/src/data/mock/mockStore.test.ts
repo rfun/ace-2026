@@ -53,16 +53,15 @@ describe('saveRecipe', () => {
     expect(r.createdAt).toBe(1);
     expect(r.updatedAt).toBeGreaterThan(1);
   });
-  it("rejects updating someone else's recipe with forbidden (fails if the author check is removed)", async () => {
+  it("rejects updating someone else's recipe with not-author (fails if the author check is removed)", async () => {
     const s = createMockStore({ me: user, recipes: [recipe('a', 'u-other')], tips: [] });
-    await expect(s.saveRecipe({ ...draft('Hijack'), id: 'a' })).rejects.toThrow('forbidden');
+    await expect(s.saveRecipe({ ...draft('Hijack'), id: 'a' })).rejects.toThrow('not-author');
     expect((await s.getRecipe('a'))?.title).toBe('T-a');
   });
-  it("lets a moderator update someone else's recipe without changing the author", async () => {
+  it("rejects a moderator editing someone else's recipe with not-author (catches the moderator edit override coming back)", async () => {
     const s = createMockStore({ me: mod, recipes: [recipe('a', 'u-other')], tips: [] });
-    const r = await s.saveRecipe({ ...draft('Edited'), id: 'a' });
-    expect(r.title).toBe('Edited');
-    expect(r.authorId).toBe('u-other');
+    await expect(s.saveRecipe({ ...draft('Edited'), id: 'a' })).rejects.toThrow('not-author');
+    expect((await s.getRecipe('a'))?.title).toBe('T-a');
   });
 });
 

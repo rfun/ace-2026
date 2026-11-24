@@ -8,7 +8,7 @@ import Recipe from '../features/recipe';
 import Compose from '../features/compose';
 import Kitchen from '../features/kitchen';
 
-export default function App(): JSX.Element {
+export default function App({ notice }: { notice?: string } = {}): JSX.Element {
   const route = useRoute();
   return (
     <div className="shell">
@@ -26,6 +26,11 @@ export default function App(): JSX.Element {
           <span>ACE Culture Cookbook</span>
         </a>
       </header>
+      )}
+      {notice && (
+        <p className="shell-notice" role="status">
+          {notice}
+        </p>
       )}
       <main className="shell-main">
         {route.name === 'browse' && <Browse />}
