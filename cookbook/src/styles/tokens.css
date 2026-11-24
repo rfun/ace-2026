@@ -1,0 +1,25 @@
+:root {
+  --tin: #2b2f36; --tin-hi: #3a3f48; --tin-lo: #23262c;
+  --ground: radial-gradient(ellipse at 50% 30%, var(--tin-hi), var(--tin-lo));
+  --kraft: #c69c6d; --kraft-ink: #4a3420;
+  --card: #fbf7ee; --rule: #9fb7d6; --margin: #d2493f; --ink: #23305c; --ink-soft: #4b5577;
+  /* Text red: use for red text only. --margin stays for rules and step numerals. */
+  --margin-ink: #a63029;
+  --paper-white: #ffffff;
+  --stock-canary: #f6e7a1; --stock-blush: #f3cfc6; --stock-mint: #cfe6d3; --stock-sky: #cfe0f1;
+  --stock: var(--card);
+  --pen-navy: #23305c; --pen-green: #2f6b3f; --pen-violet: #8a2d5c; --pen-graphite: #55585e;
+  /* One fixed ink per dietary tag (see DIETARY in domain/tags.ts). Each reads on the card and every stock. */
+  --stamp-green: #2a5f39; --stamp-olive: #4f5a1c; --stamp-umber: #7a4a1e; --stamp-navy: #23305c;
+  --stamp-rust: #9a3d12; --stamp-graphite: #55585e; --stamp-teal: #17606a; --stamp-violet: #8a2d5c;
+  --tape: rgba(198, 156, 109, 0.65);
+  --shadow-card: 0 18px 40px rgba(0, 0, 0, 0.5);
+  --shadow-tile: 0 10px 24px rgba(0, 0, 0, 0.45);
+  --shadow-snap: 0 2px 6px rgba(0, 0, 0, 0.3);
+  --shadow-tab: inset 0 -6px 8px -6px rgba(74, 52, 32, 0.5);
+  --radius-card-top: 6px 10px 0 0;
+  --font-typed: "Courier Prime", ui-monospace, monospace;
+  --font-read: "Literata", "Noto Serif", Georgia, serif;
+  --font-hand: "Caveat", "Segoe Print", cursive;
+  --rule-gap: 32px; --radius-card: 6px;
+}

@@ -1,0 +1,53 @@
+/* Recipe tin: the browse screen. Colours, fonts and the rule gap come from tokens only; shared pieces live in styles/components.css. */
+.bw-ground { max-width: 1200px; margin: 0 auto; color: var(--card); }
+.bw-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+.bw-h1 { font: 700 34px/40px var(--font-typed); margin: 0; color: var(--card); }
+.bw-h2 { font: 700 24px/32px var(--font-typed); margin: 8px 0 16px; color: var(--card); }
+
+.bw-search { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 12px; }
+.bw-search-label { font: 700 15px/1 var(--font-typed); }
+.bw-input { font: 400 17px/1.2 var(--font-read); padding: 10px 12px; min-height: 44px; border: 2px solid var(--kraft); border-radius: 4px; background: var(--card); color: var(--ink); flex: 1 1 220px; max-width: 420px; }
+.bw-toggle { display: inline-flex; }
+.bw-course-row { margin-bottom: 12px; }
+
+.bw-filters { display: none; background: var(--tin-lo); border: 2px solid var(--kraft); border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; }
+.bw-group { border: 0; margin: 0 0 10px; padding: 0; min-width: 0; }
+.bw-legend { font: 700 13px/20px var(--font-typed); text-transform: uppercase; letter-spacing: 0.12em; color: var(--kraft); padding: 0; }
+.bw-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.bw-chip { font-size: 15px; line-height: 1; padding: 9px 14px 8px; min-height: 40px; }
+.bw-chip[aria-pressed="true"] { text-decoration: underline; }
+
+.bw-active { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 16px; }
+.bw-active-chip { font: 700 14px/1 var(--font-typed); background: var(--card); color: var(--ink); border: 2px solid var(--stamp-violet); border-radius: 5px; padding: 8px 10px; min-height: 40px; cursor: pointer; }
+
+.bw-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; }
+.bw-li { margin: 0; min-width: 0; }
+.bw-card { display: flex; flex-direction: column; gap: 4px; position: relative; min-height: 220px; height: 100%; padding: 30px 20px 18px; background-color: var(--stock); color: var(--ink); text-decoration: none; border-radius: var(--radius-card-top); box-shadow: var(--shadow-tile); overflow: hidden; background-image: repeating-linear-gradient(to bottom, transparent 0 calc(var(--rule-gap) - 1px), var(--rule) calc(var(--rule-gap) - 1px) var(--rule-gap)); background-position: 0 64px; }
+.bw-card::before { content: ""; position: absolute; left: 36px; top: 0; bottom: 0; width: 2px; background: var(--margin); opacity: 0.6; }
+.bw-card > * { position: relative; padding-left: 28px; }
+.bw-card > .bw-course { position: absolute; top: 8px; left: 44px; padding: 0; font: 700 15px/1 var(--font-typed); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); }
+.bw-card-blank { min-height: 220px; }
+.bw-title { font: 400 28px/32px var(--font-typed); overflow-wrap: anywhere; }
+.bw-card.bw-has-photo > .bw-title { padding-right: 140px; min-height: 96px; }
+.bw-by { font: 700 15px/32px var(--font-typed); }
+.bw-meta { font: 700 14px/24px var(--font-typed); color: var(--ink-soft); }
+.bw-stamps { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.bw-stamps .stamp { font-size: 13px; padding: 5px 8px; border-width: 2px; background: var(--stock); }
+
+.bw-card > .bw-snap { position: absolute; right: 20px; top: 14px; margin: 0; padding-left: 0; width: 120px; height: 90px; transform: rotate(2deg); }
+.bw-snap::before { top: -10px; width: 50px; height: 18px; margin-left: -25px; }
+
+.bw-note { background: var(--card); color: var(--ink); border-radius: var(--radius-card-top); padding: 28px 28px 24px; max-width: 520px; box-shadow: var(--shadow-tile); }
+.bw-note-title { font: 400 26px/32px var(--font-typed); margin: 0 0 16px; }
+
+@media (max-width: 600px) {
+  .bw-ground { padding: 0 12px; }
+  .bw-h1 { font-size: 30px; line-height: 36px; }
+  .bw-filters-open { display: block; }
+  .bw-grid { grid-template-columns: minmax(0, 1fr); }
+  .bw-by, .bw-meta, .bw-chip, .bw-active-chip, .bw-search-label { font-size: 17px; }
+  .bw-chip, .bw-active-chip { min-height: 44px; }
+  .bw-legend { font-size: 15px; }
+  .bw-stamps .stamp { font-size: 15px; }
+  .bw-input { max-width: none; }
+}

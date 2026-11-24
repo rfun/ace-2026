@@ -1,0 +1,43 @@
+/* Kitchen mode: one big ruled card on the tin. Colours, fonts and the rule gap come from tokens only; shared pieces live in styles/components.css. */
+.kt-ground { position: fixed; inset: 0; z-index: 10; display: flex; flex-direction: column; background: var(--tin); background-image: var(--ground); color: var(--ink); overflow-y: auto; }
+
+.kt-bar { display: flex; justify-content: flex-end; padding: 12px 16px 0; max-width: 820px; width: 100%; margin: 0 auto; }
+.kt-close { font: 700 18px/1 var(--font-typed); color: var(--card); background: var(--tin-lo); border: 2px solid var(--card); border-radius: 4px; padding: 14px 18px; min-height: 48px; text-decoration: none; display: inline-flex; align-items: center; }
+
+.kt-card { flex: 1 0 auto; background-color: var(--stock); background-image: repeating-linear-gradient(to bottom, transparent 0 calc(var(--rule-gap) - 1px), var(--rule) calc(var(--rule-gap) - 1px) var(--rule-gap)); border-radius: var(--radius-card); box-shadow: var(--shadow-card); margin: 12px 16px; padding: 0 24px 48px 44px; --rule-gap: 48px; max-width: 820px; width: calc(100% - 32px); align-self: center; position: relative; touch-action: pan-y; }
+.kt-card::before { content: ""; position: absolute; left: 28px; top: 0; bottom: 0; width: 2px; background: var(--margin); }
+.kt-card-blank { min-height: 320px; }
+
+.kt-progress { font: 400 18px/var(--rule-gap) var(--font-typed); margin: 0; color: var(--ink); }
+.kt-title { font: 400 36px/var(--rule-gap) var(--font-typed); margin: 0; overflow-wrap: anywhere; }
+.kt-step { font: 500 32px/var(--rule-gap) var(--font-read); margin: 0 0 var(--rule-gap); overflow-wrap: anywhere; color: var(--ink); }
+.kt-text { font: 400 22px/var(--rule-gap) var(--font-read); margin: 0; }
+.kt-link { color: var(--ink); text-decoration: underline; font-size: 22px; }
+
+.kt-ing { list-style: none; margin: 0; padding: 0; }
+.kt-check { display: flex; align-items: flex-start; gap: 14px; min-height: var(--rule-gap); padding: 0; font: 400 22px/var(--rule-gap) var(--font-read); cursor: pointer; }
+.kt-check input { width: 28px; height: 28px; flex: none; margin: 10px 0 0; accent-color: var(--ink); }
+.kt-check input:checked + .kt-ing-text { text-decoration: line-through; color: var(--ink-soft); }
+.kt-ing-text { line-height: var(--rule-gap); }
+.kt-qty { font: 700 22px/var(--rule-gap) var(--font-typed); color: var(--pen-navy); vertical-align: top; position: relative; top: 4px; }
+
+.kt-photo { max-width: 420px; }
+.kt-photo img { height: auto; max-height: 40vh; }
+
+.kt-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 4px 16px 16px; max-width: 820px; width: 100%; margin: 0 auto; position: sticky; bottom: 0; }
+.kt-btn { font-size: 24px; min-height: 72px; background: var(--card); color: var(--ink); border: 3px solid var(--card); border-radius: 6px; box-shadow: none; padding: 12px; }
+.kt-btn-next { background: var(--kraft); color: var(--kraft-ink); border-color: var(--kraft-ink); }
+.kt-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.kt-btn:active:not(:disabled) { transform: translate(1px, 2px); box-shadow: none; }
+
+.kt-slide { animation: kt-in 220ms ease-out; }
+@keyframes kt-in { from { transform: translateX(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .kt-slide { animation: none; } }
+
+@media (max-width: 600px) {
+  .kt-card { margin: 8px; width: calc(100% - 16px); padding: 0 16px 48px 40px; }
+  .kt-card::before { left: 24px; }
+  .kt-title { font-size: 30px; }
+  .kt-step { font-size: 30px; }
+  .kt-nav { padding: 4px 8px 12px; }
+}

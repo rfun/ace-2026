@@ -31,3 +31,7 @@ Temporary Items
 
 # Backup files
 *.bak
+
+# Culture cookbook app
+cookbook/node_modules/
+cookbook/dist/

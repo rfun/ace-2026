@@ -1,0 +1,58 @@
+/* Shared pieces used by every screen. Feature stylesheets add layout only; they do not redefine these. */
+
+/* Pen ink (tip handwriting): one set of classes for shown tips and the composer. */
+.pen-navy { color: var(--pen-navy); } .pen-green { color: var(--pen-green); }
+.pen-violet { color: var(--pen-violet); } .pen-graphite { color: var(--pen-graphite); }
+
+/* Course stock: a card sets --stock from its course; the ruled lines are drawn over it. */
+.stock-canary { --stock: var(--stock-canary); }
+.stock-blush { --stock: var(--stock-blush); }
+.stock-mint { --stock: var(--stock-mint); }
+.stock-sky { --stock: var(--stock-sky); }
+
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; font: 700 17px/1 var(--font-typed); background: var(--ink); color: var(--card); padding: 12px 18px; border: 2px solid var(--ink); border-radius: 4px; box-shadow: none; cursor: pointer; min-height: 44px; text-decoration: none; }
+.btn:active:not(:disabled) { transform: translate(1px, 1px); filter: brightness(1.25); }
+
+/* Shared kraft divider tab / filter chip. Features add size and padding only. */
+.tab { display: inline-block; font-family: var(--font-typed); font-weight: 700; background: var(--kraft); color: var(--kraft-ink); border: 0; border-radius: 9px 9px 0 0; text-decoration: none; box-shadow: var(--shadow-tab); cursor: pointer; }
+.tab[aria-pressed="true"], .tab.is-active { background: var(--card); color: var(--ink); box-shadow: none; }
+.btn:disabled { opacity: 0.55; cursor: default; }
+.btn-prop { background: var(--card); color: var(--ink); }
+
+.quiet { display: inline-flex; align-items: center; font: 400 17px/1 var(--font-typed); background: none; border: 0; color: var(--ink-soft); text-decoration: underline; cursor: pointer; padding: 10px 4px; min-height: 44px; }
+.quiet-light { color: var(--card); }
+
+.label { display: block; font: 400 17px/var(--rule-gap) var(--font-typed); text-transform: uppercase; letter-spacing: 0.12em; color: var(--margin-ink); margin: 0; padding: 0; }
+.label-ink { color: var(--ink); }
+
+/* A taped snapshot. Size and tilt come from the screen that places it. */
+.snap { margin: 0; background: var(--paper-white); border: 6px solid var(--paper-white); border-radius: 3px; box-shadow: var(--shadow-snap); position: relative; }
+.snap img { display: block; width: 100%; height: 100%; object-fit: cover; background: var(--stock-canary); }
+.snap::before { content: ""; position: absolute; left: 50%; top: -12px; width: 70px; height: 22px; margin-left: -35px; background: var(--tape); transform: rotate(-2deg); z-index: 1; }
+
+/* A rubber stamp. The ink and tilt belong to the tag, never to the stamp's position in a list. */
+.stamp { --stamp-ink: var(--stamp-violet); --stamp-tilt: -2deg; display: inline-block; font: 700 14px/1 var(--font-typed); letter-spacing: 0.1em; text-transform: uppercase; border: 2.5px solid var(--stamp-ink); color: var(--stamp-ink); padding: 6px 10px; border-radius: 5px; transform: rotate(var(--stamp-tilt)); }
+.stamp-green { --stamp-ink: var(--stamp-green); --stamp-tilt: -2deg; }
+.stamp-olive { --stamp-ink: var(--stamp-olive); --stamp-tilt: 1.5deg; }
+.stamp-umber { --stamp-ink: var(--stamp-umber); --stamp-tilt: -1deg; }
+.stamp-navy { --stamp-ink: var(--stamp-navy); --stamp-tilt: 2deg; }
+.stamp-rust { --stamp-ink: var(--stamp-rust); --stamp-tilt: -2.5deg; }
+.stamp-graphite { --stamp-ink: var(--stamp-graphite); --stamp-tilt: 1deg; }
+.stamp-teal { --stamp-ink: var(--stamp-teal); --stamp-tilt: -1.5deg; }
+.stamp-violet { --stamp-ink: var(--stamp-violet); --stamp-tilt: 2.5deg; }
+.stamp-sample { --stamp-ink: var(--ink); --stamp-tilt: 0deg; border: 1.5px dashed var(--ink); font-size: 13px; }
+
+/* One focus pair: on a card (default) and on the tin. */
+:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; box-shadow: 0 0 0 6px var(--card); }
+.on-tin :focus-visible, .on-tin:focus-visible { outline-color: var(--card); box-shadow: 0 0 0 6px var(--ink); }
+
+@media (max-width: 600px) {
+  .stamp { font-size: 15px; }
+  .stamp-sample { font-size: 14px; }
+}
+
+/* Quiet shell notice (e.g. shared storage unreachable): small typed line on the tin, no alarm colours. */
+.shell-notice { margin: 0; padding: 8px 24px; font: 400 14px/20px var(--font-typed); color: var(--card); }
+@media (max-width: 600px) { .shell-notice { padding: 8px 12px; } }
