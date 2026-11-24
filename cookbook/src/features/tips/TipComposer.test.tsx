@@ -1,10 +1,11 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { StoreProvider } from '../../data/StoreProvider';
 import type { DataStore } from '../../data/store';
 import { createMockStore } from '../../data/mock/mockStore';
 import type { Me } from '../../domain/types';
 import { TipComposer } from './TipComposer';
+import * as tipsIndex from './index';
 
 const writer: Me = { id: 'u-you', canWrite: true, canModerate: false };
 const viewer: Me = { id: 'u-you', canWrite: false, canModerate: false };
@@ -23,6 +24,12 @@ const area = async () => (await screen.findByLabelText('Your tip')) as HTMLTextA
 const type = async (v: string) => fireEvent.change(await area(), { target: { value: v } });
 const submitBtn = () => screen.getByRole('button', { name: 'Pin it to the card' });
 const png = (name = 'a.png') => new File(['a'], name, { type: 'image/png' });
+
+const realCreateObjectURL = URL.createObjectURL;
+afterEach(() => {
+  URL.createObjectURL = realCreateObjectURL;
+  vi.restoreAllMocks();
+});
 
 describe('TipComposer', () => {
   it('submit stores the trimmed tip and calls onDone (catches tip not saved / untrimmed / callback skipped)', async () => {
@@ -98,6 +105,47 @@ describe('TipComposer', () => {
     await waitFor(() => expect(onDone).toHaveBeenCalledTimes(1));
   });
 
+  it('Cmd+Enter (metaKey) submits (catches a Ctrl-only shortcut)', async () => {
+    const store = createMockStore({ me: writer, recipes: [], tips: [] });
+    const { onDone } = mount(store);
+    await type('mac user');
+    fireEvent.keyDown(await area(), { key: 'Enter', metaKey: true });
+    await waitFor(() => expect(onDone).toHaveBeenCalledTimes(1));
+  });
+
+  it('plain Enter does not submit (catches an over-eager shortcut)', async () => {
+    const store = createMockStore({ me: writer, recipes: [], tips: [] });
+    const spy = vi.spyOn(store, 'addTip');
+    mount(store);
+    await type('line one');
+    fireEvent.keyDown(await area(), { key: 'Enter' });
+    expect(spy).not.toHaveBeenCalled();
+  });
+
+  it('Escape during a save is ignored: no discard prompt, no cancel (catches cancelling mid-save)', async () => {
+    const store = createMockStore({ me: writer, recipes: [], tips: [] });
+    let release: () => void = () => {};
+    const real = store.addTip.bind(store);
+    vi.spyOn(store, 'addTip').mockImplementation(async (r, t) => {
+      await new Promise<void>((res) => { release = res; });
+      return real(r, t);
+    });
+    const { onCancel, onDone } = mount(store);
+    await type('saving');
+    fireEvent.click(submitBtn());
+    await screen.findByRole('button', { name: 'Pinning…' });
+    fireEvent.keyDown(await area(), { key: 'Escape' });
+    expect(onCancel).not.toHaveBeenCalled();
+    expect(screen.queryByRole('group', { name: 'Discard this tip?' })).toBeNull();
+    release();
+    await waitFor(() => expect(onDone).toHaveBeenCalledTimes(1));
+  });
+
+  it('index re-exports TipComposer and keeps a default export (catches App routing or import breakage)', () => {
+    expect(tipsIndex.TipComposer).toBe(TipComposer);
+    expect(typeof tipsIndex.default).toBe('function');
+  });
+
   it('a chosen photo without alt text blocks submit (catches inaccessible photos)', async () => {
     const store = createMockStore({ me: writer, recipes: [], tips: [] });
     const addSpy = vi.spyOn(store, 'addTip');
@@ -115,6 +163,24 @@ describe('TipComposer', () => {
     fireEvent.click(submitBtn());
     await waitFor(() => expect(addSpy).toHaveBeenCalled());
     expect(addSpy.mock.calls[0][1].photo?.alt).toBe('A tin of ladoo');
+  });
+
+  it('accepts exactly 20 MiB but rejects 20 MiB + 1 (catches an off-by-one on the size limit)', async () => {
+    URL.createObjectURL = vi.fn(() => 'blob:fake');
+    mount(createMockStore({ me: writer, recipes: [], tips: [] }));
+    const input = await screen.findByLabelText('Photo (optional)');
+    const sized = (n: number) => {
+      const f = png('s.png');
+      Object.defineProperty(f, 'size', { value: n });
+      return f;
+    };
+    fireEvent.change(input, { target: { files: [sized(20 * 1024 * 1024)] } });
+    expect(screen.queryByText(/over 20 MB/)).toBeNull();
+    expect(screen.getByLabelText('Describe the photo')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Remove photo' }));
+    fireEvent.change(input, { target: { files: [sized(20 * 1024 * 1024 + 1)] } });
+    expect(screen.getByText(/over 20 MB/)).toBeInTheDocument();
+    expect(screen.queryByLabelText('Describe the photo')).toBeNull();
   });
 
   it('rejects photos over 20 MiB and removing a photo clears it (catches oversize upload / stuck attachment)', async () => {

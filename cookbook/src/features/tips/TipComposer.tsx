@@ -113,6 +113,7 @@ export function TipComposer({ recipeId, onDone, onCancel }: TipComposerProps): J
   function onKeyDown(e: React.KeyboardEvent) {
     if (e.key === 'Escape') {
       e.preventDefault();
+      if (busy) return; // no cancelling mid-save
       if (confirming) setConfirming(false);
       else requestCancel();
     } else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
