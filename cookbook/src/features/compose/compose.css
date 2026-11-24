@@ -2,8 +2,8 @@
 .cp-ground { max-width: 960px; margin: 0 auto; color: var(--ink); }
 
 .cp-tabs { display: flex; flex-wrap: wrap; gap: 6px; padding-left: 24px; font-family: var(--font-typed); font-weight: 700; font-size: 17px; }
-.cp-tab { background: var(--kraft); color: var(--kraft-ink); padding: 11px 20px 8px; border-radius: 9px 9px 0 0; margin-top: 6px; text-decoration: none; box-shadow: var(--shadow-tab); min-height: 44px; }
-.cp-tab-on { background: var(--card); color: var(--ink); margin-top: 0; padding-top: 17px; box-shadow: none; }
+.cp-tab { padding: 11px 20px 8px; margin-top: 6px; min-height: 44px; }
+.cp-tab.is-active { margin-top: 0; padding-top: 17px; }
 
 .cp-card { background: var(--card); border-radius: var(--radius-card-top); box-shadow: var(--shadow-card); overflow: hidden; color: var(--ink); }
 .cp-notice { padding: 32px 28px 48px; min-height: 240px; }
@@ -32,7 +32,6 @@
 .cp-checks { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 4px 16px; }
 .cp-check { display: flex; align-items: center; gap: 10px; min-height: 44px; font: 400 17px/24px var(--font-read); }
 .cp-check input { width: 24px; height: 24px; accent-color: var(--ink); flex: none; }
-.cp-sym { font: 700 17px/1 var(--font-typed); width: 1.2em; text-align: center; color: var(--stamp-violet); }
 
 .cp-rows { list-style: none; margin: 0 0 12px; padding: 0; }
 .cp-row { display: flex; gap: 12px; align-items: flex-start; margin: 0 0 16px; }

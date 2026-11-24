@@ -39,10 +39,10 @@ function Shell(props: { tab: string; children: React.ReactNode; busy?: boolean }
   return (
     <div className="cp-ground" aria-busy={props.busy ? true : undefined}>
       <nav className="cp-tabs on-enamel" aria-label="Recipe location">
-        <a className="cp-tab" href={formatHash({ name: 'browse' })} onClick={goTo({ name: 'browse' })}>
+        <a className="tab cp-tab" href={formatHash({ name: 'browse' })} onClick={goTo({ name: 'browse' })}>
           All recipes
         </a>
-        <span className="cp-tab cp-tab-on">{props.tab}</span>
+        <span className="tab cp-tab is-active">{props.tab}</span>
       </nav>
       {props.children}
     </div>
@@ -427,7 +427,6 @@ export default function ComposePage(props: { id?: string }): JSX.Element {
                       patch({ dietary: e.target.checked ? [...form.dietary, d] : form.dietary.filter((x) => x !== d) })
                     }
                   />
-                  <span aria-hidden="true" className="cp-sym">{DIETARY[d].symbol}</span>
                   {DIETARY[d].label}
                 </label>
               ))}

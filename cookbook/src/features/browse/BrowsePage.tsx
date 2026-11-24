@@ -17,10 +17,9 @@ function toggle<T>(list: T[], v: T): T[] {
   return list.includes(v) ? list.filter((x) => x !== v) : [...list, v];
 }
 
-function Chip(props: { label: string; symbol?: string; on: boolean; onClick: () => void }): JSX.Element {
+function Chip(props: { label: string; on: boolean; onClick: () => void }): JSX.Element {
   return (
-    <button type="button" className={`bw-chip${props.on ? ' bw-chip-on' : ''}`} aria-pressed={props.on} onClick={props.onClick}>
-      {props.symbol && <span aria-hidden="true" className="bw-sym">{props.symbol} </span>}
+    <button type="button" className="tab bw-chip" aria-pressed={props.on} onClick={props.onClick}>
       {props.label}
     </button>
   );
@@ -62,7 +61,6 @@ function Card(props: { recipe: Recipe; author: string }): JSX.Element {
           <span className="bw-stamps">
             {recipe.dietary.map((d) => (
               <span className={`stamp stamp-${DIETARY[d]?.ink}`} key={d}>
-                <span aria-hidden="true">{DIETARY[d]?.symbol} </span>
                 {DIETARY[d]?.label ?? d}
               </span>
             ))}
@@ -201,7 +199,7 @@ export default function BrowsePage(): JSX.Element {
       <div className="bw-course-row">
         <Group title="Course">
           {(Object.keys(COURSES) as Course[]).map((c) => (
-            <Chip key={c} label={COURSES[c].label} symbol={COURSES[c].symbol} on={filters.courses.includes(c)} onClick={() => set({ courses: toggle(filters.courses, c) })} />
+            <Chip key={c} label={COURSES[c].label} on={filters.courses.includes(c)} onClick={() => set({ courses: toggle(filters.courses, c) })} />
           ))}
         </Group>
       </div>
@@ -209,7 +207,7 @@ export default function BrowsePage(): JSX.Element {
       <div id="bw-filters" className={`bw-filters${open ? ' bw-filters-open' : ''}`}>
         <Group title="Dietary">
           {(Object.keys(DIETARY) as DietaryTag[]).map((d) => (
-            <Chip key={d} label={DIETARY[d].label} symbol={DIETARY[d].symbol} on={filters.dietary.includes(d)} onClick={() => set({ dietary: toggle(filters.dietary, d) })} />
+            <Chip key={d} label={DIETARY[d].label} on={filters.dietary.includes(d)} onClick={() => set({ dietary: toggle(filters.dietary, d) })} />
           ))}
         </Group>
         <Group title="Origin">
