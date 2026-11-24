@@ -79,7 +79,8 @@
   .rc-title { font-size: 40px; line-height: 48px; }
 }
 @media (max-width: 600px) {
-  .rc-ground { margin: 0 -12px; }
+  /* compose.css zeroes the shell's side padding at this width, so the card is already full-bleed. */
+  .rc-ground { margin: 0; }
   .rc-tabs { padding-left: 12px; }
   .rc-tab:not(.rc-tab-back) { display: none; }
   .rc-tab-back { background: var(--card); color: var(--ink); margin-top: 0; padding-top: 15px; box-shadow: none; }

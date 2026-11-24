@@ -136,9 +136,10 @@ describe('RecipePage', () => {
     expect(onAddTip).toHaveBeenCalledTimes(1);
   });
 
-  it('+ Add your tip is inert without a handler (catches an unguarded onAddTip call)', async () => {
+  it('+ Add your tip with no handler opens the composer instead (catches an unguarded onAddTip call)', async () => {
     setup(reader);
     fireEvent.click(await screen.findByRole('button', { name: '+ Add your tip' }));
+    expect(await screen.findByRole('form', { name: 'Add your tip' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
   });
 
@@ -168,5 +169,95 @@ describe('RecipePage', () => {
     expect(await screen.findByText('Fresh tip from a test')).toBeInTheDocument();
     unmount();
     expect(off).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('tips composer on the page', () => {
+  const addBtn = () => screen.queryByRole('button', { name: '+ Add your tip' });
+
+  // Catches: composer not mounted, button left beside it, or onAddTip override ignored.
+  it('opening the composer replaces the button; onAddTip, when given, wins', async () => {
+    setup(reader);
+    fireEvent.click(await screen.findByRole('button', { name: '+ Add your tip' }));
+    expect(await screen.findByLabelText('Your tip')).toBeInTheDocument();
+    expect(addBtn()).toBeNull();
+  });
+
+  // Catches: new tip missing, shown twice (local add + subscription), or composer left open.
+  it('submitting shows the new tip exactly once and closes the composer', async () => {
+    setup(reader);
+    fireEvent.click(await screen.findByRole('button', { name: '+ Add your tip' }));
+    fireEvent.change(await screen.findByLabelText('Your tip'), { target: { value: 'Toast the besan longer' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Pin it to the card' }));
+    await screen.findByText('Toast the besan longer');
+    await waitFor(() => expect(screen.queryByRole('form', { name: 'Add your tip' })).toBeNull());
+    // let the subscription reload settle, then make sure there is still one copy
+    await act(async () => { await new Promise((r) => setTimeout(r, 20)); });
+    expect(screen.getAllByText('Toast the besan longer')).toHaveLength(1);
+    expect(addBtn()).not.toBeNull();
+  });
+
+  // Catches: focus lost to <body> when the composer unmounts.
+  it('cancel closes the composer and returns focus to the add button', async () => {
+    setup(reader);
+    fireEvent.click(await screen.findByRole('button', { name: '+ Add your tip' }));
+    await screen.findByLabelText('Your tip');
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    await waitFor(() => expect(addBtn()).not.toBeNull());
+    expect(addBtn()).toHaveFocus();
+  });
+
+  // Catches: focus return only wired to cancel, not to a successful submit.
+  it('focus also returns to the add button after a successful submit', async () => {
+    setup(reader);
+    fireEvent.click(await screen.findByRole('button', { name: '+ Add your tip' }));
+    fireEvent.change(await screen.findByLabelText('Your tip'), { target: { value: 'ok' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Pin it to the card' }));
+    await waitFor(() => expect(addBtn()).not.toBeNull());
+    expect(addBtn()).toHaveFocus();
+  });
+});
+
+describe('load failures and sequencing', () => {
+  // Catches: a thrown store error being shown as "not in the tin", or no way to retry.
+  it('shows a retry card on load error, distinct from not-found, and retry recovers', async () => {
+    const store = createMockStore({ me: reader });
+    const real = store.getRecipe.bind(store);
+    let fail = true;
+    store.getRecipe = async (rid: string) => {
+      if (fail) throw new Error('offline');
+      return real(rid);
+    };
+    mount(store);
+    expect(await screen.findByText("Couldn't open this card. Try again.")).toBeInTheDocument();
+    expect(screen.queryByText(/isn't in the tin/)).toBeNull();
+    fail = false;
+    fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
+    expect(await screen.findByRole('heading', { level: 1, name: 'Besan Ladoo' })).toBeInTheDocument();
+  });
+
+  // Catches: a slow earlier reload resolving last and overwriting the newer data.
+  it('when two loads resolve out of order the newest wins', async () => {
+    const store = createMockStore({ me: reader });
+    const real = store.getRecipe.bind(store);
+    const gates: Array<() => void> = [];
+    let calls = 0;
+    store.getRecipe = async (rid: string) => {
+      calls += 1;
+      const n = calls;
+      const r = await real(rid);
+      if (n <= 2) await new Promise<void>((res) => gates.push(res));
+      if (!r) return r;
+      return { ...r, title: n === 1 ? 'OLD TITLE' : 'NEW TITLE' };
+    };
+    mount(store); // load #1, held
+    await waitFor(() => expect(gates).toHaveLength(1));
+    await act(async () => { await store.addTip(ID, { text: 'poke' }); }); // subscribe -> load #2, held
+    await waitFor(() => expect(gates).toHaveLength(2));
+    await act(async () => { gates[1](); }); // newest resolves first
+    expect(await screen.findByRole('heading', { level: 1, name: 'NEW TITLE' })).toBeInTheDocument();
+    await act(async () => { gates[0](); }); // stale resolves last
+    expect(screen.getByRole('heading', { level: 1, name: 'NEW TITLE' })).toBeInTheDocument();
+    expect(screen.queryByText('OLD TITLE')).toBeNull();
   });
 });

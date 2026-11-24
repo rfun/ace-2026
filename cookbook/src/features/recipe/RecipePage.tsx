@@ -1,15 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { MouseEvent } from 'react';
 import { formatHash, navigate } from '../../app/router';
 import { useStore } from '../../data/StoreProvider';
 import { COURSES, DIETARY } from '../../domain/tags';
 import type { Me, Person, Photo, Recipe, Tip, UserId } from '../../domain/types';
+import { TipComposer } from '../tips';
 import { penFor } from './pens';
 import './recipe.css';
 
 type Loaded =
   | { status: 'loading' }
   | { status: 'missing' }
+  | { status: 'error' }
   | { status: 'ready'; recipe: Recipe; tips: Tip[]; people: Record<UserId, Person>; me: Me };
 
 function formatMinutes(total: number): string {
@@ -58,29 +60,39 @@ export default function RecipePage(props: { id: string; onAddTip?: () => void })
   const store = useStore();
   const { id, onAddTip } = props;
   const [data, setData] = useState<Loaded>({ status: 'loading' });
+  const [composing, setComposing] = useState(false);
+  const addBtnRef = useRef<HTMLButtonElement>(null);
+  const refocusAdd = useRef(false);
+  // Each load takes a number; only the newest one may write state.
+  const seq = useRef(0);
+  const reload = useRef<() => void>(() => undefined);
 
   useEffect(() => {
     let cancelled = false;
     setData({ status: 'loading' });
-    async function load(): Promise<void> {
+    setComposing(false);
+    async function load(): Promise<Loaded> {
       const [recipe, tips, me] = await Promise.all([store.getRecipe(id), store.listTips(id), store.me()]);
-      if (cancelled) return;
       // A hidden recipe is as good as gone for anyone who cannot moderate.
-      if (!recipe || (recipe.hidden && !me.canModerate)) {
-        setData({ status: 'missing' });
-        return;
-      }
+      if (!recipe || (recipe.hidden && !me.canModerate)) return { status: 'missing' };
       const shownTips = tips.filter((t) => me.canModerate || !t.hidden);
       const ids = Array.from(new Set([recipe.authorId, ...shownTips.map((t) => t.authorId)]));
       const people = await store.people(ids);
-      if (cancelled) return;
-      setData({ status: 'ready', recipe, tips: shownTips, people, me });
+      return { status: 'ready', recipe, tips: shownTips, people, me };
     }
     const run = () => {
-      load().catch(() => {
-        if (!cancelled) setData({ status: 'missing' });
-      });
+      const mine = ++seq.current;
+      load().then(
+        (next) => {
+          if (!cancelled && mine === seq.current) setData(next);
+        },
+        () => {
+          // A failed background refresh keeps the card already on screen.
+          if (!cancelled && mine === seq.current) setData((prev) => (prev.status === 'ready' ? prev : { status: 'error' }));
+        },
+      );
     };
+    reload.current = run;
     run();
     const unsubscribe = store.subscribe(run);
     return () => {
@@ -89,11 +101,54 @@ export default function RecipePage(props: { id: string; onAddTip?: () => void })
     };
   }, [store, id]);
 
+  const retry = useCallback(() => {
+    setData({ status: 'loading' });
+    reload.current();
+  }, []);
+
+  useEffect(() => {
+    if (!composing && refocusAdd.current) {
+      refocusAdd.current = false;
+      addBtnRef.current?.focus();
+    }
+  }, [composing, data.status]);
+
+  function closeComposer(): void {
+    refocusAdd.current = true;
+    setComposing(false);
+  }
+
+  function onTipDone(tip: Tip): void {
+    setData((prev) => {
+      if (prev.status !== 'ready' || prev.tips.some((t) => t.id === tip.id)) return prev;
+      return { ...prev, tips: [...prev.tips, tip] };
+    });
+    closeComposer();
+  }
+
   if (data.status === 'loading') {
     return (
       <Shell tabs={<BackTab />} busy>
         <div className="rc-card rc-card-blank" aria-hidden="true">
           <div className="rc-head rc-head-blank" />
+          <div className="rc-ruled rc-ruled-blank" />
+        </div>
+      </Shell>
+    );
+  }
+
+  if (data.status === 'error') {
+    return (
+      <Shell tabs={<BackTab />}>
+        <div className="rc-card">
+          <div className="rc-head">
+            <h1 className="rc-title">Couldn&apos;t open this card. Try again.</h1>
+            <p className="rc-by">
+              <button type="button" className="rc-btn rc-btn-prop" onClick={retry}>
+                Try again
+              </button>
+            </p>
+          </div>
           <div className="rc-ruled rc-ruled-blank" />
         </div>
       </Shell>
@@ -238,9 +293,18 @@ export default function RecipePage(props: { id: string; onAddTip?: () => void })
                 ))}
               </ul>
             )}
-            <button type="button" className="rc-btn rc-btn-add" onClick={() => onAddTip?.()}>
-              + Add your tip
-            </button>
+            {composing ? (
+              <TipComposer recipeId={recipe.id} onDone={onTipDone} onCancel={closeComposer} />
+            ) : (
+              <button
+                type="button"
+                ref={addBtnRef}
+                className="rc-btn rc-btn-add"
+                onClick={() => (onAddTip ? onAddTip() : setComposing(true))}
+              >
+                + Add your tip
+              </button>
+            )}
           </section>
         </div>
       </article>
