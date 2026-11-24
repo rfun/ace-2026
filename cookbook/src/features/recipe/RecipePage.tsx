@@ -61,6 +61,7 @@ export default function RecipePage(props: { id: string; onAddTip?: () => void })
   const { id, onAddTip } = props;
   const [data, setData] = useState<Loaded>({ status: 'loading' });
   const [composing, setComposing] = useState(false);
+  const [justAdded, setJustAdded] = useState<string | null>(null);
   const addBtnRef = useRef<HTMLButtonElement>(null);
   const refocusAdd = useRef(false);
   // Each load takes a number; only the newest one may write state.
@@ -71,6 +72,7 @@ export default function RecipePage(props: { id: string; onAddTip?: () => void })
     let cancelled = false;
     setData({ status: 'loading' });
     setComposing(false);
+    setJustAdded(null);
     async function load(): Promise<Loaded> {
       const [recipe, tips, me] = await Promise.all([store.getRecipe(id), store.listTips(id), store.me()]);
       // A hidden recipe is as good as gone for anyone who cannot moderate.
@@ -119,6 +121,7 @@ export default function RecipePage(props: { id: string; onAddTip?: () => void })
   }
 
   function onTipDone(tip: Tip): void {
+    setJustAdded(tip.id);
     setData((prev) => {
       if (prev.status !== 'ready' || prev.tips.some((t) => t.id === tip.id)) return prev;
       return { ...prev, tips: [...prev.tips, tip] };
@@ -185,12 +188,14 @@ export default function RecipePage(props: { id: string; onAddTip?: () => void })
     recipe.totalMinutes !== undefined ? formatMinutes(recipe.totalMinutes) : undefined,
   ].filter((x): x is string => Boolean(x));
 
+  const canEdit = me.canWrite && (me.id === recipe.authorId || me.canModerate);
+
   const tabs = (
     <>
       <BackTab />
-      <span className="rc-tab rc-tab-static">{recipe.origin}</span>
-      {recipe.occasions[0] && <span className="rc-tab rc-tab-static">{recipe.occasions[0]}</span>}
-      <span className="rc-tab rc-tab-static rc-tab-on">{courseLabel}</span>
+      <span className="rc-where">{recipe.origin}</span>
+      {recipe.occasions[0] && <span className="rc-where">{recipe.occasions[0]}</span>}
+      <span className="rc-where">{courseLabel}</span>
     </>
   );
 
@@ -215,6 +220,11 @@ export default function RecipePage(props: { id: string; onAddTip?: () => void })
             <button type="button" className="btn btn-prop" onClick={() => navigate({ name: 'kitchen', id: recipe.id })}>
               Prop it up
             </button>
+            {canEdit && (
+              <button type="button" className="quiet" onClick={() => navigate({ name: 'compose', id: recipe.id })}>
+                Edit this card
+              </button>
+            )}
             {me.canModerate && (
               <button
                 type="button"
@@ -228,7 +238,7 @@ export default function RecipePage(props: { id: string; onAddTip?: () => void })
           {recipe.mainPhoto && <Snapshot photo={recipe.mainPhoto} className="rc-snap-main" />}
         </header>
 
-        <div className="rc-ruled">
+        <div className={`rc-ruled${composing ? ' rc-composing' : ''}`}>
           <div className="rc-body">
             <section aria-labelledby="rc-h-story" className="rc-sec">
               <h2 id="rc-h-story" className="sr-only">
@@ -258,8 +268,8 @@ export default function RecipePage(props: { id: string; onAddTip?: () => void })
               <ol className="rc-steps">
                 {recipe.steps.map((step) => (
                   <li key={step.id}>
+                    <span className="rc-step-text">{step.text}</span>
                     {step.photo && <Snapshot photo={step.photo} className="rc-snap-step" />}
-                    {step.text}
                   </li>
                 ))}
               </ol>
@@ -275,7 +285,7 @@ export default function RecipePage(props: { id: string; onAddTip?: () => void })
             ) : (
               <ul className="rc-tips">
                 {tips.map((tip, i) => (
-                  <li key={tip.id} className={`rc-tip rc-pen-${penFor(tip.authorId)} rc-tilt-${i % 3}`}>
+                  <li key={tip.id} className={`rc-tip rc-pen-${penFor(tip.authorId)} rc-tilt-${i % 3}${tip.id === justAdded ? ' rc-tip-new' : ''}`}>
                     {tip.hidden && <span className="rc-hidden-note">Hidden from others</span>}
                     <p className="rc-hand">{tip.text}</p>
                     {tip.photo && <Snapshot photo={tip.photo} className="rc-snap-tip" />}

@@ -37,7 +37,7 @@ afterEach(() => {
 describe('KitchenPage', () => {
   it('first card lists every ingredient as a checkbox (catches a Gather card that drops ingredients)', async () => {
     await ready();
-    expect(screen.getByText('Gather')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: 'Gather the ingredients' })).toBeInTheDocument();
     expect(screen.getAllByRole('checkbox')).toHaveLength(5);
     expect(screen.getByText('besan (gram flour)')).toBeInTheDocument();
   });
@@ -54,14 +54,14 @@ describe('KitchenPage', () => {
     await ready();
     expect(screen.getByRole('button', { name: 'Previous' })).toBeDisabled();
     fireEvent.keyDown(window, { key: 'ArrowLeft' });
-    expect(screen.getByText('Gather')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: 'Gather the ingredients' })).toBeInTheDocument();
   });
 
   it('Next shows "Step 1 of 5" with the step text, and announces it politely (catches wrong numbering or a missing live region)', async () => {
     await ready();
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     expect(screen.getByText('Step 1 of 5')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Melt the ghee in a heavy pan over low heat.');
+    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('Melt the ghee in a heavy pan over low heat.');
     const live = screen.getByRole('status');
     expect(live).toHaveAttribute('aria-live', 'polite');
     expect(live).toHaveTextContent('Showing step 1 of 5');
@@ -76,7 +76,7 @@ describe('KitchenPage', () => {
     fireEvent.keyDown(window, { key: 'ArrowLeft' });
     expect(screen.getByText('Step 1 of 5')).toBeInTheDocument();
     fireEvent.keyDown(window, { key: 'PageUp' });
-    expect(screen.getByText('Gather')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: 'Gather the ingredients' })).toBeInTheDocument();
   });
 
   it('swipes need 50px: 60px left advances, 30px does not, 60px right goes back (catches a wrong threshold or direction)', async () => {
@@ -90,7 +90,7 @@ describe('KitchenPage', () => {
     expect(screen.getByText('Step 1 of 5')).toBeInTheDocument();
     fireEvent.pointerDown(card(), { clientX: 100 });
     fireEvent.pointerUp(card(), { clientX: 160 });
-    expect(screen.getByText('Gather')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: 'Gather the ingredients' })).toBeInTheDocument();
   });
 
   it('last step offers Done, which reaches the Done card whose button goes to #/recipe/<id> (catches a dead end at the end)', async () => {
@@ -130,7 +130,7 @@ describe('KitchenPage', () => {
     const base = { ...recipe!, steps: [] };
     const stub: DataStore = { ...store, getRecipe: async () => base };
     mount(stub);
-    await screen.findByText('Gather');
+    await screen.findByRole('heading', { level: 2, name: 'Gather the ingredients' });
     expect(screen.getByRole('button', { name: 'Done' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Done' }));
     expect(screen.getByRole('button', { name: 'Back to the recipe' })).toBeInTheDocument();
@@ -160,7 +160,7 @@ describe('KitchenPage', () => {
 
   it('works with no wake lock API (catches a crash on browsers without it)', async () => {
     await ready();
-    expect(screen.getByText('Gather')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: 'Gather the ingredients' })).toBeInTheDocument();
   });
 
   it('restores the saved card from sessionStorage per recipe id (catches losing place on reload)', async () => {
@@ -172,7 +172,7 @@ describe('KitchenPage', () => {
   it('writes the position as the cook moves and ignores another recipe\'s position (catches a shared or unsaved key)', async () => {
     window.sessionStorage.setItem('cookbook.kitchen.other', '4');
     await ready();
-    expect(screen.getByText('Gather')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: 'Gather the ingredients' })).toBeInTheDocument();
     fireEvent.keyDown(window, { key: 'ArrowRight' });
     expect(window.sessionStorage.getItem('cookbook.kitchen.' + ID)).toBe('1');
   });

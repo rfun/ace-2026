@@ -12,6 +12,7 @@ export default function App(): JSX.Element {
   const route = useRoute();
   return (
     <div className="shell">
+      {route.name !== 'kitchen' && (
       <header className="shell-header">
         <a
           className="shell-home"
@@ -25,6 +26,7 @@ export default function App(): JSX.Element {
           <span>ACE Culture Cookbook</span>
         </a>
       </header>
+      )}
       <main className="shell-main">
         {route.name === 'browse' && <Browse />}
         {route.name === 'recipe' && <Recipe />}

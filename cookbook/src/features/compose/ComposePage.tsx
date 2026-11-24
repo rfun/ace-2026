@@ -68,8 +68,12 @@ function FieldError(props: { id: string; errors: Errors }): JSX.Element | null {
   return msg ? <p className="cp-err" id={`${props.id}-err`}>{msg}</p> : null;
 }
 
-function errProps(id: string, errors: Errors) {
-  return errors[id] ? { 'aria-invalid': true as const, 'aria-describedby': `${id}-err` } : {};
+function errProps(id: string, errors: Errors, hintId?: string) {
+  const ids = [hintId, errors[id] ? `${id}-err` : undefined].filter(Boolean).join(' ');
+  return {
+    ...(errors[id] ? { 'aria-invalid': true as const } : {}),
+    ...(ids ? { 'aria-describedby': ids } : {}),
+  };
 }
 
 function PhotoField(props: {
@@ -136,15 +140,21 @@ function Rowtools(props: { what: string; index: number; count: number; onMove: (
   const n = props.index + 1;
   return (
     <div className="cp-tools">
-      <button type="button" className="cp-icon" onClick={() => props.onMove(-1)} disabled={props.index === 0} aria-label={`Move ${props.what} ${n} up`}>
-        <span aria-hidden="true">↑</span>
-      </button>
-      <button type="button" className="cp-icon" onClick={() => props.onMove(1)} disabled={props.index === props.count - 1} aria-label={`Move ${props.what} ${n} down`}>
-        <span aria-hidden="true">↓</span>
-      </button>
-      <button type="button" className="cp-icon" onClick={props.onRemove} disabled={props.count === 1} aria-label={`Remove ${props.what} ${n}`}>
-        <span aria-hidden="true">×</span>
-      </button>
+      {props.index > 0 && (
+        <button type="button" className="quiet cp-tool" onClick={() => props.onMove(-1)} aria-label={`Move ${props.what} ${n} up`}>
+          Up
+        </button>
+      )}
+      {props.index < props.count - 1 && (
+        <button type="button" className="quiet cp-tool" onClick={() => props.onMove(1)} aria-label={`Move ${props.what} ${n} down`}>
+          Down
+        </button>
+      )}
+      {props.count > 1 && (
+        <button type="button" className="quiet cp-tool" onClick={props.onRemove} aria-label={`Remove ${props.what} ${n}`}>
+          Remove
+        </button>
+      )}
     </div>
   );
 }
@@ -166,7 +176,7 @@ function TextField(props: {
     value: props.value,
     onChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => props.onChange(e.target.value),
     'aria-required': props.required ? ('true' as const) : undefined,
-    ...errProps(props.id, props.errors),
+    ...errProps(props.id, props.errors, props.hint ? `${props.id}-hint` : undefined),
   };
   return (
     <div className={`cp-field ${props.className ?? ''}`}>
@@ -174,12 +184,12 @@ function TextField(props: {
         {props.label}
         {props.required && <span aria-hidden="true"> *</span>}
       </label>
-      {props.hint && <p className="cp-hint">{props.hint}</p>}
       {props.multiline ? (
         <textarea className="cp-input cp-area" rows={4} {...common} />
       ) : (
         <input className="cp-input" type="text" inputMode={props.inputMode} {...common} />
       )}
+      {props.hint && <p className="cp-hint" id={`${props.id}-hint`}>{props.hint}</p>}
       <FieldError id={props.id} errors={props.errors} />
     </div>
   );
@@ -444,11 +454,11 @@ export default function ComposePage(props: { id?: string }): JSX.Element {
                 return (
                   <li key={ing.key} className="cp-row cp-ing">
                     <div className="cp-qty">
-                      <label className="label" htmlFor={`f-qty-${idx}`}>Ingredient {idx + 1} amount</label>
+                      <label className="label" htmlFor={`f-qty-${idx}`}><span className="sr-only">Ingredient {idx + 1} </span>Amount</label>
                       <input id={`f-qty-${idx}`} className="cp-input cp-hand" type="text" value={ing.quantity} onChange={(e) => set({ quantity: e.target.value })} />
                     </div>
                     <div className="cp-item">
-                      <label className="label" htmlFor={eid}>Ingredient {idx + 1} name</label>
+                      <label className="label" htmlFor={eid}><span className="sr-only">Ingredient {idx + 1} </span>Ingredient</label>
                       <input id={eid} className="cp-input" type="text" value={ing.item} onChange={(e) => set({ item: e.target.value })} {...errProps(eid, errors)} />
                       <FieldError id={eid} errors={errors} />
                     </div>

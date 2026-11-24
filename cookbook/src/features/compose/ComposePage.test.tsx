@@ -35,7 +35,7 @@ function fillRequired() {
   type(/^The story behind it/, 'A fake story for a fake dal.');
   type(/^Culture or region/, 'Testland');
   type(/^Course/, 'main');
-  type('Ingredient 1 name', 'lentils');
+  type('Ingredient 1 Ingredient', 'lentils');
   type('Step 1', 'Simmer the lentils.');
 }
 
@@ -140,7 +140,7 @@ describe('ComposePage saving', () => {
     fillRequired();
     fireEvent.click(screen.getByRole('button', { name: 'Add an ingredient' }));
     fireEvent.click(screen.getByRole('button', { name: 'Add a step' }));
-    type('Ingredient 1 amount', '1 cup');
+    type('Ingredient 1 Amount', '1 cup');
     type(/^Occasions/, 'Diwali,  weddings ,');
     type(/^Total time/, '45');
     fireEvent.click(screen.getByLabelText(/Vegan/));
@@ -221,8 +221,8 @@ describe('ComposePage rows', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Remove step 2' }));
     expect([1, 2].map((n) => (screen.getByLabelText(`Step ${n}`) as HTMLTextAreaElement).value)).toEqual(['third', 'second']);
     expect(screen.queryByLabelText('Step 3')).toBeNull();
-    expect(screen.getByRole('button', { name: 'Move step 1 up' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Move step 2 down' })).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'Move step 1 up' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Move step 2 down' })).toBeNull();
   });
 
   it('keeps ingredient order when saved after a reorder (catches reorder not reaching the saved draft)', async () => {
@@ -230,7 +230,7 @@ describe('ComposePage rows', () => {
     await ready(store);
     fillRequired();
     fireEvent.click(screen.getByRole('button', { name: 'Add an ingredient' }));
-    type('Ingredient 2 name', 'salt');
+    type('Ingredient 2 Ingredient', 'salt');
     fireEvent.click(screen.getByRole('button', { name: 'Move ingredient 2 up' }));
     save();
     await waitFor(() => expect(window.location.hash).toMatch(/^#\/recipe\/r-/));
