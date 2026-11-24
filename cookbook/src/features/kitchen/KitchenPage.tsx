@@ -79,7 +79,7 @@ function useWakeLock(): void {
 function Frame(props: { id: string; live?: string; busy?: boolean; children: ReactNode; footer?: ReactNode }): JSX.Element {
   const recipeHref = formatHash({ name: 'recipe', id: props.id });
   return (
-    <div className="kt-ground on-enamel" aria-busy={props.busy ? true : undefined}>
+    <div className="kt-ground on-tin" aria-busy={props.busy ? true : undefined}>
       <div className="kt-bar">
         <a
           className="kt-close"

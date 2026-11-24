@@ -6,7 +6,7 @@ import { chooseStore, OFFLINE_NOTICE } from './data/artifact/chooseStore';
 
 const root = createRoot(document.getElementById('root')!);
 
-// A blank enamel shell (the body background) shows while the store is chosen: no spinner.
+// A blank tin shell (the body background) shows while the store is chosen: no spinner.
 chooseStore().then(({ store, status }) => {
   root.render(
     <StrictMode>

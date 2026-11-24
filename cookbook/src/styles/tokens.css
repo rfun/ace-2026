@@ -1,5 +1,7 @@
 :root {
-  --enamel: #1f4f4a; --enamel-deep: #163b37; --kraft: #c69c6d; --kraft-ink: #4a3420;
+  --tin: #2b2f36; --tin-hi: #3a3f48; --tin-lo: #23262c;
+  --ground: radial-gradient(ellipse at 50% 30%, var(--tin-hi), var(--tin-lo));
+  --kraft: #c69c6d; --kraft-ink: #4a3420;
   --card: #fbf7ee; --rule: #9fb7d6; --margin: #d2493f; --ink: #23305c; --ink-soft: #4b5577;
   /* Text red: use for red text only. --margin stays for rules and step numerals. */
   --margin-ink: #a63029;

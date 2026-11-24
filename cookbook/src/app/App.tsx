@@ -23,7 +23,7 @@ export default function App({ notice }: { notice?: string } = {}): JSX.Element {
           }}
         >
           <img className="shell-logo" src={logo} alt="ACE" width="32" height="32" />
-          <span>ACE Culture Cookbook</span>
+          <span>ACE Cookbook</span>
         </a>
       </header>
       )}

@@ -1,4 +1,4 @@
-# ACE Culture Cookbook
+# ACE Cookbook
 
 Vite + React 18 + TypeScript app. Built into a single self-contained page that is published as a Claude artifact.
 

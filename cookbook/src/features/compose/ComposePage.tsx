@@ -38,7 +38,7 @@ function goTo(route: Parameters<typeof navigate>[0]) {
 function Shell(props: { tab: string; children: React.ReactNode; busy?: boolean }): JSX.Element {
   return (
     <div className="cp-ground" aria-busy={props.busy ? true : undefined}>
-      <nav className="cp-tabs on-enamel" aria-label="Recipe location">
+      <nav className="cp-tabs on-tin" aria-label="Recipe location">
         <a className="tab cp-tab" href={formatHash({ name: 'browse' })} onClick={goTo({ name: 'browse' })}>
           All recipes
         </a>

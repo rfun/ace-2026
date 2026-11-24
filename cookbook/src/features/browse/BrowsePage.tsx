@@ -121,7 +121,7 @@ export default function BrowsePage(): JSX.Element {
 
   if (data.status === 'loading') {
     return (
-      <div className="bw-ground on-enamel" aria-busy="true">
+      <div className="bw-ground on-tin" aria-busy="true">
         <ul className="bw-grid" aria-hidden="true">
           {[0, 1, 2].map((i) => (
             <li key={i} className="bw-li"><div className="bw-card bw-card-blank" /></li>
@@ -133,7 +133,7 @@ export default function BrowsePage(): JSX.Element {
 
   if (data.status === 'error') {
     return (
-      <div className="bw-ground on-enamel">
+      <div className="bw-ground on-tin">
         <div className="bw-note">
           <p className="bw-note-title">Couldn&apos;t open the tin. Try again.</p>
           <button type="button" className="btn btn-prop" onClick={() => void load()}>Retry</button>
@@ -147,7 +147,7 @@ export default function BrowsePage(): JSX.Element {
 
   if (recipes.length === 0) {
     return (
-      <div className="bw-ground on-enamel">
+      <div className="bw-ground on-tin">
         <div className="bw-note">
           <p className="bw-note-title">The tin is empty. Add the first recipe.</p>
           {me.canWrite && <AddButton />}
@@ -170,7 +170,7 @@ export default function BrowsePage(): JSX.Element {
   ];
 
   return (
-    <div className="bw-ground on-enamel">
+    <div className="bw-ground on-tin">
       <div className="bw-top">
         <h1 className="bw-h1">The recipe tin</h1>
         {me.canWrite && <AddButton />}

@@ -44,15 +44,15 @@
 .stamp-violet { --stamp-ink: var(--stamp-violet); --stamp-tilt: 2.5deg; }
 .stamp-sample { --stamp-ink: var(--ink); --stamp-tilt: 0deg; border: 1.5px dashed var(--ink); font-size: 13px; }
 
-/* One focus pair: on a card (default) and on the enamel. */
+/* One focus pair: on a card (default) and on the tin. */
 :focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; box-shadow: 0 0 0 6px var(--card); }
-.on-enamel :focus-visible, .on-enamel:focus-visible { outline-color: var(--card); box-shadow: 0 0 0 6px var(--ink); }
+.on-tin :focus-visible, .on-tin:focus-visible { outline-color: var(--card); box-shadow: 0 0 0 6px var(--ink); }
 
 @media (max-width: 600px) {
   .stamp { font-size: 15px; }
   .stamp-sample { font-size: 14px; }
 }
 
-/* Quiet shell notice (e.g. shared storage unreachable): small typed line on the enamel, no alarm colours. */
+/* Quiet shell notice (e.g. shared storage unreachable): small typed line on the tin, no alarm colours. */
 .shell-notice { margin: 0; padding: 8px 24px; font: 400 14px/20px var(--font-typed); color: var(--card); opacity: 0.85; }
 @media (max-width: 600px) { .shell-notice { padding: 8px 12px; } }
