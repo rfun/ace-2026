@@ -37,7 +37,7 @@ describe('browse cards', () => {
   it('positions the snapshot top-right, keeps rules unbroken and pads titles only with a photo', () => {
     expect(css).toMatch(/\.bw-card > \.bw-snap \{[^}]*position: absolute; right: 20px; top: 14px/);
     expect(/^\.bw-title \{[^}]*\}/m.exec(css)![0]).not.toMatch(/background/);
-    expect(css).toMatch(/\.bw-card\.bw-has-photo > \.bw-title \{ padding-right: 140px; \}/);
+    expect(css).toMatch(/\.bw-card\.bw-has-photo > \.bw-title \{ padding-right: 140px; min-height: 96px; \}/);
     expect(css).not.toMatch(/^\.bw-title \{[^}]*padding-right/m);
   });
 });

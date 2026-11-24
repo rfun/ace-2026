@@ -18,7 +18,8 @@
 .kt-check { display: flex; align-items: flex-start; gap: 14px; min-height: var(--rule-gap); padding: 0; font: 400 22px/var(--rule-gap) var(--font-read); cursor: pointer; }
 .kt-check input { width: 28px; height: 28px; flex: none; margin: 10px 0 0; accent-color: var(--ink); }
 .kt-check input:checked + .kt-ing-text { text-decoration: line-through; color: var(--ink-soft); }
-.kt-qty { font: 700 22px/var(--rule-gap) var(--font-typed); color: var(--pen-navy); }
+.kt-ing-text { line-height: var(--rule-gap); }
+.kt-qty { font: 700 22px/var(--rule-gap) var(--font-typed); color: var(--pen-navy); vertical-align: top; position: relative; top: 4px; }
 
 .kt-photo { max-width: 420px; }
 .kt-photo img { height: auto; max-height: 40vh; }

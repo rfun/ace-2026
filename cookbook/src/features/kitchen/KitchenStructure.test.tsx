@@ -71,6 +71,11 @@ describe('kitchen structure', () => {
   // Catches: text drifting off the 48px rules (gap not set on the card, or line heights not following it).
   it('sets --rule-gap 48px on the card and sizes line heights from it', () => {
     expect(/\.kt-card \{[^}]*--rule-gap: 48px/.test(css)).toBe(true);
+    // jsdom has no layout, so geometry cannot be measured here; the 48px pitch is measured in CDP screenshots (see report).
+    // The gather row must not grow its line box: inline qty top-aligned, text span on the rule gap, no row padding/margin.
+    expect(/\.kt-qty \{[^}]*vertical-align: top/.test(css)).toBe(true);
+    expect(/\.kt-ing-text \{[^}]*line-height: var\(--rule-gap\)/.test(css)).toBe(true);
+    expect(/\.kt-check \{[^}]*min-height: var\(--rule-gap\); padding: 0;/.test(css)).toBe(true);
     for (const sel of ['kt-title', 'kt-step', 'kt-text', 'kt-progress', 'kt-check']) {
       expect(css).toMatch(new RegExp(`\\.${sel} \\{[^}]*var\\(--rule-gap\\)`));
     }

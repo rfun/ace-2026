@@ -28,7 +28,7 @@
 .bw-card > .bw-course { position: absolute; top: 8px; left: 44px; padding: 0; font: 700 15px/1 var(--font-typed); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); }
 .bw-card-blank { min-height: 220px; }
 .bw-title { font: 400 28px/32px var(--font-typed); overflow-wrap: anywhere; }
-.bw-card.bw-has-photo > .bw-title { padding-right: 140px; }
+.bw-card.bw-has-photo > .bw-title { padding-right: 140px; min-height: 96px; }
 .bw-by { font: 700 15px/32px var(--font-typed); }
 .bw-meta { font: 700 14px/24px var(--font-typed); color: var(--ink-soft); }
 .bw-stamps { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
