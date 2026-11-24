@@ -14,13 +14,13 @@
 .cp-link { color: var(--ink); text-decoration: underline; font-size: 18px; display: inline-block; padding: 10px 0; }
 
 /* Ruled body with the red margin line, as on the recipe card. */
-.cp-body { position: relative; padding: 8px 32px 24px 64px; background-image: repeating-linear-gradient(to bottom, transparent 0 calc(var(--rule-gap) - 1px), var(--rule) calc(var(--rule-gap) - 1px) var(--rule-gap)); }
+.cp-body { position: relative; padding: 8px 32px 24px 64px; }
 .cp-body::before { content: ""; position: absolute; left: 44px; top: 0; bottom: 0; width: 2px; background: var(--margin); }
 .cp-head { position: relative; }
 
 .cp-field { margin: 0 0 20px; min-width: 0; }
-.cp-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; }
-.cp-hint { font: 400 17px/24px var(--font-read); color: var(--ink-soft); margin: 0 0 4px; }
+.cp-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; align-items: start; }
+.cp-hint { font: 400 17px/24px var(--font-read); color: var(--ink-soft); margin: 4px 0 0; }
 .cp-input { display: block; width: 100%; min-height: 48px; font: 400 18px/28px var(--font-read); color: var(--pen-navy); background: var(--card); border: 2px solid var(--rule); border-radius: 4px; padding: 8px 12px; }
 .cp-area { resize: vertical; min-height: 112px; }
 .cp-hand { font: 500 24px/28px var(--font-hand); }
@@ -38,9 +38,8 @@
 .cp-row { display: flex; gap: 12px; align-items: flex-start; margin: 0 0 16px; }
 .cp-ing .cp-qty { flex: 0 0 210px; }
 .cp-ing .cp-item, .cp-stepmain { flex: 1 1 auto; min-width: 0; }
-.cp-tools { display: flex; gap: 4px; padding-top: 28px; flex: none; }
-.cp-icon { width: 44px; height: 44px; font: 700 20px/1 var(--font-typed); background: var(--card); color: var(--ink); border: 2px solid var(--ink); border-radius: 4px; cursor: pointer; }
-.cp-icon:disabled { opacity: 0.35; cursor: default; }
+.cp-tools { display: flex; flex-wrap: wrap; gap: 0 8px; padding-top: var(--rule-gap); flex: none; }
+.cp-tool { padding: 10px 6px; }
 
 .cp-photo { margin: 8px 0 4px; }
 .cp-filebtn { display: inline-flex; align-items: center; }

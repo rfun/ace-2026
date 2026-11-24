@@ -210,8 +210,7 @@ export default function KitchenPage(props: { id: string }): JSX.Element {
   if (onGather) {
     body = (
       <>
-        <p className="label kt-kicker">Gather</p>
-        <h1 className="kt-title">{recipe.title}</h1>
+        <h2 className="kt-title">Gather the ingredients</h2>
         <ul className="kt-ing">
           {recipe.ingredients.map((ing, i) => (
             <li key={i}>
@@ -233,18 +232,17 @@ export default function KitchenPage(props: { id: string }): JSX.Element {
   } else if (onDone) {
     body = (
       <>
-        <p className="label kt-kicker">Done</p>
-        <h1 className="kt-title">All done. Enjoy!</h1>
+        <h2 className="kt-title">All done. Enjoy!</h2>
         <p className="kt-text">{recipe.title}</p>
       </>
     );
   } else {
     body = (
       <>
-        <p className="label kt-kicker">
+        <p className="kt-progress">
           Step {current} of {stepCount}
         </p>
-        <h1 className="kt-step">{step?.text}</h1>
+        <h2 className="kt-step">{step?.text}</h2>
         {step?.photo && (
           <figure className="snap kt-photo">
             <img src={step.photo.url} alt={step.photo.alt} />
@@ -282,6 +280,7 @@ export default function KitchenPage(props: { id: string }): JSX.Element {
           startX.current = null;
         }}
       >
+        <h1 className="sr-only">{recipe.title}</h1>
         {body}
       </div>
     </Frame>

@@ -97,4 +97,18 @@ describe('App shell', () => {
     await goTo('#/');
     expectOnly('browse');
   });
+
+  // Catches: the shell header (a hidden tab stop under the kitchen overlay) rendering on the kitchen route, or vanishing on the others.
+  it.each([
+    ['#/kitchen/r1', false],
+    ['#/', true],
+    ['#/recipe/r1', true],
+    ['#/compose', true],
+    ['#/compose/r1', true],
+  ] as const)('on %s the shell header is shown: %s', async (hash, shown) => {
+    renderApp();
+    await goTo(hash);
+    if (shown) expect(screen.getByText('ACE Culture Cookbook')).toBeInTheDocument();
+    else expect(screen.queryByText('ACE Culture Cookbook')).toBeNull();
+  });
 });

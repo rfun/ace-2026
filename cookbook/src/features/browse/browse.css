@@ -7,9 +7,10 @@
 .bw-search { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 12px; }
 .bw-search-label { font: 700 15px/1 var(--font-typed); }
 .bw-input { font: 400 17px/1.2 var(--font-read); padding: 10px 12px; min-height: 44px; border: 2px solid var(--kraft); border-radius: 4px; background: var(--card); color: var(--ink); flex: 1 1 220px; max-width: 420px; }
-.bw-toggle { display: none; }
+.bw-toggle { display: inline-flex; }
+.bw-course-row { margin-bottom: 12px; }
 
-.bw-filters { display: block; background: var(--enamel-deep); border: 2px solid var(--kraft); border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; }
+.bw-filters { display: none; background: var(--enamel-deep); border: 2px solid var(--kraft); border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; }
 .bw-group { border: 0; margin: 0 0 10px; padding: 0; min-width: 0; }
 .bw-legend { font: 700 13px/20px var(--font-typed); text-transform: uppercase; letter-spacing: 0.12em; color: var(--kraft); padding: 0; }
 .bw-chips { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -26,13 +27,14 @@
 .bw-card > * { position: relative; padding-left: 28px; }
 .bw-card > .bw-course { position: absolute; top: 8px; left: 44px; padding: 0; font: 700 15px/1 var(--font-typed); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); }
 .bw-card-blank { min-height: 220px; }
-.bw-title { font: 400 28px/32px var(--font-typed); overflow-wrap: anywhere; background: var(--stock); }
+.bw-title { font: 400 28px/32px var(--font-typed); overflow-wrap: anywhere; }
+.bw-card.bw-has-photo > .bw-title { padding-right: 140px; min-height: 96px; }
 .bw-by { font: 700 15px/32px var(--font-typed); }
 .bw-meta { font: 700 14px/24px var(--font-typed); color: var(--ink-soft); }
 .bw-stamps { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
 .bw-stamps .stamp { font-size: 12px; padding: 5px 8px; border-width: 2px; background: var(--stock); }
 
-.bw-card > .bw-snap { margin: 0 0 8px; padding-left: 0; width: 120px; height: 90px; align-self: flex-end; transform: rotate(2deg); }
+.bw-card > .bw-snap { position: absolute; right: 20px; top: 14px; margin: 0; padding-left: 0; width: 120px; height: 90px; transform: rotate(2deg); }
 .bw-snap::before { top: -10px; width: 50px; height: 18px; margin-left: -25px; }
 
 .bw-note { background: var(--card); color: var(--ink); border-radius: var(--radius-card-top); padding: 28px 28px 24px; max-width: 520px; box-shadow: var(--shadow-tile); }
@@ -41,8 +43,6 @@
 @media (max-width: 600px) {
   .bw-ground { padding: 0 12px; }
   .bw-h1 { font-size: 30px; line-height: 36px; }
-  .bw-toggle { display: inline-flex; }
-  .bw-filters { display: none; }
   .bw-filters-open { display: block; }
   .bw-grid { grid-template-columns: minmax(0, 1fr); }
   .bw-by, .bw-meta, .bw-chip, .bw-active-chip, .bw-search-label { font-size: 17px; }

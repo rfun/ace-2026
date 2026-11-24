@@ -46,7 +46,7 @@ function Card(props: { recipe: Recipe; author: string }): JSX.Element {
   };
   return (
     <li className="bw-li">
-      <a className={`bw-card ${stockClass(recipe.course)}`} href={formatHash({ name: 'recipe', id: recipe.id })} onClick={go}>
+      <a className={`bw-card ${stockClass(recipe.course)}${recipe.mainPhoto ? ' bw-has-photo' : ''}`} href={formatHash({ name: 'recipe', id: recipe.id })} onClick={go}>
         {recipe.mainPhoto && (
           <figure className="snap bw-snap">
             <img src={recipe.mainPhoto.url} alt={recipe.mainPhoto.alt} loading="lazy" />
@@ -198,15 +198,18 @@ export default function BrowsePage(): JSX.Element {
         </button>
       </div>
 
+      <div className="bw-course-row">
+        <Group title="Course">
+          {(Object.keys(COURSES) as Course[]).map((c) => (
+            <Chip key={c} label={COURSES[c].label} symbol={COURSES[c].symbol} on={filters.courses.includes(c)} onClick={() => set({ courses: toggle(filters.courses, c) })} />
+          ))}
+        </Group>
+      </div>
+
       <div id="bw-filters" className={`bw-filters${open ? ' bw-filters-open' : ''}`}>
         <Group title="Dietary">
           {(Object.keys(DIETARY) as DietaryTag[]).map((d) => (
             <Chip key={d} label={DIETARY[d].label} symbol={DIETARY[d].symbol} on={filters.dietary.includes(d)} onClick={() => set({ dietary: toggle(filters.dietary, d) })} />
-          ))}
-        </Group>
-        <Group title="Course">
-          {(Object.keys(COURSES) as Course[]).map((c) => (
-            <Chip key={c} label={COURSES[c].label} symbol={COURSES[c].symbol} on={filters.courses.includes(c)} onClick={() => set({ courses: toggle(filters.courses, c) })} />
           ))}
         </Group>
         <Group title="Origin">
