@@ -1,26 +1,19 @@
 .tips-composer { background: var(--card); color: var(--ink); padding: 8px 4px 16px; max-width: 100%; box-sizing: border-box; }
-.tips-label { display: block; font: 400 15px/var(--rule-gap) var(--font-typed); text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink); }
 .tips-area { display: block; width: 100%; box-sizing: border-box; font: 500 22px/32px var(--font-hand); background: repeating-linear-gradient(transparent 0 31px, var(--rule) 31px 32px); border: 0; border-bottom: 2px solid var(--rule); padding: 0 6px; resize: vertical; min-height: 160px; }
 .tips-pen-navy { color: var(--pen-navy); } .tips-pen-green { color: var(--pen-green); }
 .tips-pen-violet { color: var(--pen-violet); } .tips-pen-graphite { color: var(--pen-graphite); }
 .tips-count { font: 400 14px/24px var(--font-typed); color: var(--ink-soft); margin: 2px 0 0; text-align: right; }
-.tips-error { font: 700 15px/22px var(--font-typed); color: var(--margin); margin: 4px 0; }
+.tips-error { font: 700 15px/22px var(--font-typed); color: var(--margin-ink); margin: 4px 0; }
 .tips-note { font: 400 17px/26px var(--font-read); margin: 0 0 8px; }
 .tips-photo { margin-top: 8px; }
 .tips-file, .tips-alt { font: 400 16px/1.4 var(--font-read); max-width: 100%; box-sizing: border-box; }
-.tips-alt { display: block; width: 100%; padding: 8px; border: 2px solid var(--ink); border-radius: 4px; background: #fff; color: var(--ink); min-height: 44px; }
+.tips-alt { display: block; width: 100%; padding: 8px; border: 2px solid var(--ink); border-radius: 4px; background: var(--paper-white); color: var(--ink); min-height: 44px; }
 .tips-attached { margin-top: 8px; }
-.tips-preview { display: block; max-width: min(100%, 240px); max-height: 140px; background: #fff; border: 6px solid #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3); transform: rotate(-1deg); margin: 8px 0; }
+.tips-preview { display: block; max-width: min(100%, 240px); max-height: 140px; background: var(--paper-white); border: 6px solid var(--paper-white); box-shadow: var(--shadow-snap); transform: rotate(-1deg); margin: 8px 0; }
 .tips-actions, .tips-confirm { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-top: 16px; }
 .tips-confirm .tips-note { margin: 0; }
-.tips-btn { font: 700 15px/1 var(--font-typed); background: var(--ink); color: var(--card); padding: 12px 18px; border: 0; border-radius: 4px; box-shadow: 2px 3px 0 var(--kraft); cursor: pointer; min-height: 44px; }
-.tips-btn:active { transform: translate(1px, 1px); box-shadow: 1px 2px 0 var(--kraft); }
-.tips-btn:disabled { opacity: 0.6; cursor: default; }
-.tips-btn-prop { background: var(--card); color: var(--ink); border: 2px solid var(--ink); }
-.tips-quiet { font: 400 15px/1 var(--font-typed); background: none; border: 0; color: var(--ink-soft); text-decoration: underline; cursor: pointer; padding: 10px 4px; min-height: 44px; }
-.tips-area:focus-visible, .tips-file:focus-visible, .tips-alt:focus-visible, .tips-btn:focus-visible, .tips-quiet:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
 @media (max-width: 600px) {
   .tips-note, .tips-alt, .tips-file { font-size: 17px; }
-  .tips-count, .tips-error, .tips-label, .tips-btn, .tips-quiet { font-size: 17px; }
-  .tips-btn { padding: 12px 14px; }
+  .tips-count, .tips-error { font-size: 17px; }
+  .tips-composer .btn { padding: 12px 14px; }
 }

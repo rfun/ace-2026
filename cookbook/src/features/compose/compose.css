@@ -1,12 +1,11 @@
-/* Recipe Card Tin: a blank card being filled in. Colours, fonts and the rule gap come from tokens only. */
+/* Recipe Card Tin: a blank card being filled in. Colours, fonts and the rule gap come from tokens only; shared pieces live in styles/components.css. */
 .cp-ground { max-width: 960px; margin: 0 auto; color: var(--ink); }
-.cp-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; }
 
 .cp-tabs { display: flex; flex-wrap: wrap; gap: 6px; padding-left: 24px; font-family: var(--font-typed); font-weight: 700; font-size: 17px; }
-.cp-tab { background: var(--kraft); color: var(--kraft-ink); padding: 11px 20px 8px; border-radius: 9px 9px 0 0; margin-top: 6px; text-decoration: none; box-shadow: inset 0 -6px 8px -6px rgba(74, 52, 32, 0.5); min-height: 44px; }
+.cp-tab { background: var(--kraft); color: var(--kraft-ink); padding: 11px 20px 8px; border-radius: 9px 9px 0 0; margin-top: 6px; text-decoration: none; box-shadow: var(--shadow-tab); min-height: 44px; }
 .cp-tab-on { background: var(--card); color: var(--ink); margin-top: 0; padding-top: 17px; box-shadow: none; }
 
-.cp-card { background: var(--card); border-radius: var(--radius-card) 10px 0 0; box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5); overflow: hidden; color: var(--ink); }
+.cp-card { background: var(--card); border-radius: var(--radius-card-top); box-shadow: var(--shadow-card); overflow: hidden; color: var(--ink); }
 .cp-notice { padding: 32px 28px 48px; min-height: 240px; }
 .cp-head { padding: 28px 32px 8px 64px; }
 .cp-title { font: 400 44px/52px var(--font-typed); margin: 0 0 4px; letter-spacing: -0.01em; overflow-wrap: anywhere; }
@@ -21,21 +20,19 @@
 
 .cp-field { margin: 0 0 20px; min-width: 0; }
 .cp-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; }
-.cp-label { display: block; font: 400 17px/28px var(--font-typed); text-transform: uppercase; letter-spacing: 0.08em; color: var(--margin); padding: 0; }
-.cp-small { font-size: 17px; }
 .cp-hint { font: 400 17px/24px var(--font-read); color: var(--ink-soft); margin: 0 0 4px; }
 .cp-input { display: block; width: 100%; min-height: 48px; font: 400 18px/28px var(--font-read); color: var(--pen-navy); background: var(--card); border: 2px solid var(--rule); border-radius: 4px; padding: 8px 12px; }
 .cp-area { resize: vertical; min-height: 112px; }
 .cp-hand { font: 500 24px/28px var(--font-hand); }
 .cp-input[aria-invalid="true"] { border-color: var(--margin); }
-.cp-err { font: 700 17px/24px var(--font-typed); color: var(--margin); margin: 4px 0 0; }
+.cp-err { font: 700 17px/24px var(--font-typed); color: var(--margin-ink); margin: 4px 0 0; }
 
 .cp-set { border: 0; padding: 0; margin: 0 0 24px; min-width: 0; }
 .cp-set > legend { margin-bottom: 6px; }
 .cp-checks { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 4px 16px; }
 .cp-check { display: flex; align-items: center; gap: 10px; min-height: 44px; font: 400 17px/24px var(--font-read); }
 .cp-check input { width: 24px; height: 24px; accent-color: var(--ink); flex: none; }
-.cp-sym { font: 700 17px/1 var(--font-typed); width: 1.2em; text-align: center; color: var(--pen-violet); }
+.cp-sym { font: 700 17px/1 var(--font-typed); width: 1.2em; text-align: center; color: var(--stamp-violet); }
 
 .cp-rows { list-style: none; margin: 0 0 12px; padding: 0; }
 .cp-row { display: flex; gap: 12px; align-items: flex-start; margin: 0 0 16px; }
@@ -48,30 +45,20 @@
 .cp-photo { margin: 8px 0 4px; }
 .cp-filebtn { display: inline-flex; align-items: center; }
 .cp-snaprow { display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
-.cp-snap { margin: 6px 0; width: 140px; height: 105px; background: #fff; border: 6px solid #fff; border-radius: 3px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3); transform: rotate(-1deg); flex: none; }
-.cp-snap img { display: block; width: 100%; height: 100%; object-fit: cover; background: var(--stock-canary); }
+.cp-snap { margin: 6px 0; width: 140px; height: 105px; transform: rotate(-1deg); flex: none; }
 .cp-snapfields { flex: 1 1 220px; min-width: 0; }
-
-.cp-btn { font: 700 17px/1 var(--font-typed); background: var(--ink); color: var(--card); padding: 14px 20px; border: 0; border-radius: 4px; box-shadow: 2px 3px 0 var(--kraft); cursor: pointer; min-height: 48px; }
-.cp-btn:active { transform: translate(1px, 1px); box-shadow: 1px 2px 0 var(--kraft); }
-.cp-btn:disabled { opacity: 0.55; cursor: default; }
-.cp-btn-prop { background: var(--card); color: var(--ink); border: 2px solid var(--ink); }
-.cp-quiet { font: 400 17px/1 var(--font-typed); background: none; border: 0; color: var(--ink-soft); text-decoration: underline; cursor: pointer; padding: 14px 6px; min-height: 48px; display: inline-flex; align-items: center; }
-a.cp-quiet { color: var(--ink-soft); }
 
 .cp-summary { margin: 0; padding: 16px 32px 16px 64px; background: var(--stock-blush); border-top: 3px solid var(--margin); border-bottom: 3px solid var(--margin); }
 .cp-summary-h { font: 700 20px/28px var(--font-typed); margin: 0 0 4px; }
 .cp-summary ul { margin: 0; padding-left: 20px; font: 400 17px/28px var(--font-read); }
 .cp-summary a { color: var(--ink); display: inline-block; padding: 8px 0; }
-.cp-summary:focus-visible { outline: 3px solid var(--ink); outline-offset: -3px; }
+.cp-summary:focus-visible { outline-offset: -3px; box-shadow: none; }
 
 .cp-foot { padding: 16px 32px 28px 64px; background: var(--card); border-top: 2px solid var(--rule); }
 .cp-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
 
-.cp-ground a:focus-visible, .cp-ground button:focus-visible, .cp-ground input:focus-visible,
-.cp-ground select:focus-visible, .cp-ground textarea:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
-.cp-ground input.cp-sr:focus-visible + .cp-filebtn { outline: 3px solid var(--ink); outline-offset: 3px; }
-.cp-tabs a:focus-visible { outline-color: var(--card); }
+/* The photo input is visually hidden; show its button as focused instead. */
+.cp-ground input.sr-only:focus-visible + .cp-filebtn { outline: 3px solid var(--ink); outline-offset: 3px; box-shadow: 0 0 0 6px var(--card); }
 
 @media (max-width: 1023px) {
   .cp-title { font-size: 36px; line-height: 44px; }
@@ -79,7 +66,6 @@ a.cp-quiet { color: var(--ink-soft); }
 
 /* Phone: one column, bigger targets, margin line pulled in. */
 @media (max-width: 600px) {
-  .shell-main { padding: 12px 0; }
   .cp-tabs { padding-left: 12px; }
   .cp-head { padding: 20px 16px 8px 36px; }
   .cp-body { padding: 8px 16px 20px 36px; }
@@ -92,6 +78,5 @@ a.cp-quiet { color: var(--ink-soft); }
   .cp-ing, .cp-step { flex-wrap: wrap; }
   .cp-tools { padding-top: 0; }
   .cp-title { font-size: 30px; line-height: 38px; }
-  .cp-btn, .cp-quiet { width: auto; }
-  .cp-actions .cp-btn { flex: 1 1 100%; }
+  .cp-actions .btn { flex: 1 1 100%; }
 }

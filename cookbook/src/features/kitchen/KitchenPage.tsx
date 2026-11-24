@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { MouseEvent, PointerEvent, ReactNode } from 'react';
 import { formatHash, navigate } from '../../app/router';
 import { useStore } from '../../data/StoreProvider';
+import { stockClass } from '../../domain/tags';
 import type { Recipe } from '../../domain/types';
 import './kitchen.css';
 
@@ -78,7 +79,7 @@ function useWakeLock(): void {
 function Frame(props: { id: string; live?: string; busy?: boolean; children: ReactNode; footer?: ReactNode }): JSX.Element {
   const recipeHref = formatHash({ name: 'recipe', id: props.id });
   return (
-    <div className="kt-ground" aria-busy={props.busy ? true : undefined}>
+    <div className="kt-ground on-enamel" aria-busy={props.busy ? true : undefined}>
       <div className="kt-bar">
         <a
           className="kt-close"
@@ -91,7 +92,7 @@ function Frame(props: { id: string; live?: string; busy?: boolean; children: Rea
           <span aria-hidden="true">&times; </span>Close
         </a>
       </div>
-      <p className="kt-sr" aria-live="polite" role="status">
+      <p className="sr-only" aria-live="polite" role="status">
         {props.live}
       </p>
       {props.children}
@@ -209,7 +210,7 @@ export default function KitchenPage(props: { id: string }): JSX.Element {
   if (onGather) {
     body = (
       <>
-        <p className="kt-kicker">Gather</p>
+        <p className="label kt-kicker">Gather</p>
         <h1 className="kt-title">{recipe.title}</h1>
         <ul className="kt-ing">
           {recipe.ingredients.map((ing, i) => (
@@ -232,7 +233,7 @@ export default function KitchenPage(props: { id: string }): JSX.Element {
   } else if (onDone) {
     body = (
       <>
-        <p className="kt-kicker">Done</p>
+        <p className="label kt-kicker">Done</p>
         <h1 className="kt-title">All done. Enjoy!</h1>
         <p className="kt-text">{recipe.title}</p>
       </>
@@ -240,12 +241,12 @@ export default function KitchenPage(props: { id: string }): JSX.Element {
   } else {
     body = (
       <>
-        <p className="kt-kicker">
+        <p className="label kt-kicker">
           Step {current} of {stepCount}
         </p>
         <h1 className="kt-step">{step?.text}</h1>
         {step?.photo && (
-          <figure className="kt-photo">
+          <figure className="snap kt-photo">
             <img src={step.photo.url} alt={step.photo.alt} />
           </figure>
         )}
@@ -255,15 +256,15 @@ export default function KitchenPage(props: { id: string }): JSX.Element {
 
   const footer = (
     <div className="kt-nav">
-      <button type="button" className="kt-btn kt-btn-prev" disabled={onGather} onClick={() => go(-1)}>
+      <button type="button" className="btn kt-btn kt-btn-prev" disabled={onGather} onClick={() => go(-1)}>
         Previous
       </button>
       {onDone ? (
-        <button type="button" className="kt-btn kt-btn-next" onClick={() => navigate({ name: 'recipe', id })}>
+        <button type="button" className="btn kt-btn kt-btn-next" onClick={() => navigate({ name: 'recipe', id })}>
           Back to the recipe
         </button>
       ) : (
-        <button type="button" className="kt-btn kt-btn-next" onClick={() => go(1)}>
+        <button type="button" className="btn kt-btn kt-btn-next" onClick={() => go(1)}>
           {current === stepCount ? 'Done' : 'Next'}
         </button>
       )}
@@ -273,7 +274,7 @@ export default function KitchenPage(props: { id: string }): JSX.Element {
   return (
     <Frame id={id} live={live} footer={footer}>
       <div
-        className="kt-card kt-slide"
+        className={`kt-card kt-slide ${stockClass(recipe.course)}`}
         key={current}
         onPointerDown={onPointerDown}
         onPointerUp={onPointerUp}

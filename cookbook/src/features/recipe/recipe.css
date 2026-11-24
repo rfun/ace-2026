@@ -1,16 +1,15 @@
-/* Recipe Card Tin: the single-recipe screen. Colours, fonts and the rule gap come from tokens only. */
+/* Recipe Card Tin: the single-recipe screen. Colours, fonts and the rule gap come from tokens only; shared pieces live in styles/components.css. */
 .rc-ground { max-width: 1200px; margin: 0 auto; color: var(--ink); }
-.rc-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; }
 
 .rc-tabs { display: flex; flex-wrap: wrap; gap: 6px; padding-left: 24px; font-family: var(--font-typed); font-weight: 700; font-size: 15px; }
-.rc-tab { background: var(--kraft); color: var(--kraft-ink); padding: 9px 20px 8px; border-radius: 9px 9px 0 0; margin-top: 6px; text-decoration: none; box-shadow: inset 0 -6px 8px -6px rgba(74, 52, 32, 0.5); }
-.rc-tab-on { background: var(--card); color: var(--ink); margin-top: 0; padding-top: 15px; box-shadow: none; }
+.rc-tab { background: var(--kraft); color: var(--kraft-ink); padding: 9px 20px 8px; border-radius: 9px 9px 0 0; margin-top: 6px; text-decoration: none; box-shadow: var(--shadow-tab); }
+.rc-tab-on { background: var(--stock); color: var(--ink); margin-top: 0; padding-top: 15px; box-shadow: none; }
 .rc-arrow { display: none; }
 
-.rc-card { background: var(--card); border-radius: var(--radius-card) 10px 0 0; box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5); overflow: hidden; }
+.rc-card { background: var(--card); border-radius: var(--radius-card-top); box-shadow: var(--shadow-card); overflow: hidden; }
 .rc-card-blank { min-height: 560px; }
 
-.rc-head { position: relative; padding: 32px 300px 28px 290px; background: var(--card); min-height: 224px; }
+.rc-head { position: relative; padding: 32px 300px 28px 290px; background: var(--stock); min-height: 224px; }
 .rc-head-blank { min-height: 160px; }
 .rc-title { font: 400 52px/60px var(--font-typed); margin: 0 0 4px; letter-spacing: -0.01em; overflow-wrap: anywhere; }
 .rc-by { font: 700 18px/32px var(--font-typed); margin: 0; }
@@ -18,20 +17,10 @@
 .rc-meta { font: 700 15px/24px var(--font-typed); color: var(--ink-soft); margin: 0 0 8px; }
 
 .rc-stamps { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; }
-.rc-stamp { font: 700 14px/1 var(--font-typed); letter-spacing: 0.1em; text-transform: uppercase; border: 2.5px solid var(--pen-violet); color: var(--pen-violet); padding: 6px 10px; border-radius: 5px; transform: rotate(-2deg); }
-.rc-stamp:nth-child(even) { border-color: var(--pen-green); color: var(--pen-green); transform: rotate(2deg); }
-.rc-stamp-sample { border: 1.5px dashed var(--ink) !important; color: var(--ink) !important; font-size: 12px; transform: none !important; }
 
 .rc-actions { display: flex; align-items: center; gap: 16px; margin-top: 16px; }
-.rc-btn { font: 700 15px/1 var(--font-typed); background: var(--ink); color: var(--card); padding: 12px 18px; border: 0; border-radius: 4px; box-shadow: 2px 3px 0 var(--kraft); cursor: pointer; min-height: 44px; }
-.rc-btn:active { transform: translate(1px, 1px); box-shadow: 1px 2px 0 var(--kraft); }
-.rc-btn-prop { background: var(--card); color: var(--ink); border: 2px solid var(--ink); }
-.rc-quiet { font: 400 14px/1 var(--font-typed); background: none; border: 0; color: var(--ink-soft); text-decoration: underline; cursor: pointer; padding: 10px 4px; min-height: 44px; }
 .rc-link { color: var(--ink); text-decoration: underline; font-size: 18px; }
 
-.rc-snap { margin: 0; background: #fff; border: 6px solid #fff; border-radius: 3px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3); position: relative; }
-.rc-snap img { display: block; width: 100%; height: 100%; object-fit: cover; background: var(--stock-canary); }
-.rc-snap::before { content: ""; position: absolute; left: 50%; top: -12px; width: 70px; height: 22px; margin-left: -35px; background: rgba(198, 156, 109, 0.65); transform: rotate(-2deg); z-index: 1; }
 .rc-snap-main { position: absolute; right: 36px; top: 28px; width: 240px; height: 180px; transform: rotate(1.2deg); }
 .rc-snap-step { float: right; width: 240px; height: 128px; margin: 0 -270px 0 16px; transform: rotate(-1deg); }
 .rc-snap-tip { width: 100%; height: 96px; margin: 6px 0; }
@@ -44,8 +33,7 @@
 .rc-margin { grid-column: 1; grid-row: 1; padding: 0 22px 32px 24px; }
 .rc-sec { margin: 0; }
 .rc-story { margin: 0 0 var(--rule-gap); }
-.rc-label, .rc-margin-label { font: 400 17px/var(--rule-gap) var(--font-typed); text-transform: uppercase; letter-spacing: 0.14em; color: var(--margin); margin: 0; }
-.rc-margin-label { font-size: 15px; color: var(--ink); }
+.rc-margin-label { font-size: 15px; }
 .rc-ing { list-style: none; margin: 0 0 var(--rule-gap); padding: 0; }
 .rc-ing li { display: grid; grid-template-columns: 108px 1fr; align-items: baseline; }
 .rc-qty { font: 400 22px/var(--rule-gap) var(--font-hand); color: var(--pen-navy); }
@@ -62,10 +50,7 @@
 .rc-hidden-note { display: block; font: 400 12px/16px var(--font-typed); color: var(--ink-soft); }
 .rc-pen-navy { color: var(--pen-navy); } .rc-pen-green { color: var(--pen-green); }
 .rc-pen-violet { color: var(--pen-violet); } .rc-pen-graphite { color: var(--pen-graphite); }
-.rc-margin .rc-quiet { display: block; margin-left: auto; }
-
-.rc-ground a:focus-visible, .rc-ground button:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; box-shadow: 0 0 0 6px var(--card); }
-.rc-tabs a:focus-visible { outline-color: var(--card); box-shadow: none; }
+.rc-margin .quiet { display: flex; width: fit-content; margin-left: auto; }
 
 /* Below desktop: one column. Tips move under the steps as a margin strip. */
 @media (max-width: 1023px) {
@@ -79,14 +64,14 @@
   .rc-title { font-size: 40px; line-height: 48px; }
 }
 @media (max-width: 600px) {
-  /* compose.css zeroes the shell's side padding at this width, so the card is already full-bleed. */
-  .rc-ground { margin: 0; }
-  .rc-tabs { padding-left: 12px; }
+  .rc-tabs { padding-left: 12px; font-size: 17px; }
   .rc-tab:not(.rc-tab-back) { display: none; }
-  .rc-tab-back { background: var(--card); color: var(--ink); margin-top: 0; padding-top: 15px; box-shadow: none; }
+  .rc-tab-back { background: var(--stock); color: var(--ink); margin-top: 0; padding-top: 15px; box-shadow: none; min-height: 44px; }
   .rc-arrow { display: inline; }
   .rc-title { font-size: 34px; line-height: 40px; }
   .rc-hand, .rc-sign, .rc-qty { font-size: 22px; }
   .rc-body { font-size: 18px; }
+  .rc-meta, .rc-margin-label { font-size: 17px; }
+  .rc-hidden-note { font-size: 15px; line-height: 20px; }
   .rc-ing li { grid-template-columns: 96px 1fr; }
 }
