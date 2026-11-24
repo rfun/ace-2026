@@ -1,3 +1,5 @@
+import BrowsePage from './BrowsePage';
+
 export default function BrowseScreen(): JSX.Element {
-  return <h2>Browse</h2>;
+  return <BrowsePage />;
 }
