@@ -1,18 +1,79 @@
 import { act, render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import App from './App';
-import { navigate } from './router';
+import { StoreProvider } from '../data/StoreProvider';
+import { createMockStore } from '../data/mock/mockStore';
+
+// App owns only the header and route -> screen selection, so every feature
+// screen is mocked to a unique marker. Real screens may need a store or change
+// their output without affecting these tests.
+vi.mock('../features/browse', () => ({ default: () => <p>screen:browse</p> }));
+vi.mock('../features/recipe', () => ({ default: () => <p>screen:recipe</p> }));
+vi.mock('../features/compose', () => ({ default: () => <p>screen:compose</p> }));
+vi.mock('../features/kitchen', () => ({ default: () => <p>screen:kitchen</p> }));
+
+const MARKERS = ['browse', 'recipe', 'compose', 'kitchen'] as const;
+
+function renderApp() {
+  return render(
+    <StoreProvider store={createMockStore()}>
+      <App />
+    </StoreProvider>,
+  );
+}
+
+async function goTo(hash: string): Promise<void> {
+  await act(async () => {
+    window.location.hash = hash;
+    window.dispatchEvent(new HashChangeEvent('hashchange'));
+  });
+}
+
+function expectOnly(name: (typeof MARKERS)[number]): void {
+  for (const m of MARKERS) {
+    const el = screen.queryByText(`screen:${m}`);
+    if (m === name) expect(el).toBeInTheDocument();
+    else expect(el).not.toBeInTheDocument();
+  }
+}
 
 describe('App shell', () => {
-  it('renders the header and the stub for the current route, updating on hashchange', async () => {
+  beforeEach(() => {
     window.location.hash = '#/';
-    render(<App />);
+  });
+
+  // Catches: header removed or renamed.
+  it('renders the header', () => {
+    renderApp();
     expect(screen.getByText('ACE Culture Cookbook')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Browse' })).toBeInTheDocument();
-    await act(async () => {
-      navigate({ name: 'kitchen', id: 'r1' });
-      window.dispatchEvent(new HashChangeEvent('hashchange'));
-    });
-    expect(screen.getByRole('heading', { name: 'Kitchen' })).toBeInTheDocument();
+  });
+
+  // Catches: default route not mapping to browse.
+  it('shows only browse at #/', () => {
+    renderApp();
+    expectOnly('browse');
+  });
+
+  // Catches: swapped/missing route branches, or a stale screen left mounted
+  // after hashchange.
+  it.each([
+    ['#/recipe/r1', 'recipe'],
+    ['#/compose', 'compose'],
+    ['#/compose/r1', 'compose'],
+    ['#/kitchen/r1', 'kitchen'],
+  ] as const)('on hashchange to %s shows only %s', async (hash, marker) => {
+    renderApp();
+    expectOnly('browse');
+    await goTo(hash);
+    expectOnly(marker);
+  });
+
+  // Catches: route not updating on a later hashchange (listener fires once only).
+  it('returns to browse after navigating away and back', async () => {
+    renderApp();
+    await goTo('#/kitchen/r1');
+    expectOnly('kitchen');
+    await goTo('#/');
+    expectOnly('browse');
   });
 });
