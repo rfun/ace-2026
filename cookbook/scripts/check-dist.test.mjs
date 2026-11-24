@@ -30,6 +30,15 @@ describe('checkHtml', () => {
   it('allows data: and relative references', () => {
     expect(checkHtml('<img src="data:image/png;base64,AAAA"><img src="/_blob/abc">')).toEqual([]);
   });
+  it('reports a literal U+FFFD with its line (catches a publish the artifact tool would refuse)', () => {
+    const html = page('') + '\n<script>var a = 1;</script>\n<p>bad ' + String.fromCharCode(0xfffd) + '</p>';
+    const found = checkHtml(html).filter((p) => p.includes('U+FFFD'));
+    expect(found).toHaveLength(1);
+    expect(found[0]).toContain('line 3');
+  });
+  it('does not report U+FFFD for the escape text or clean pages (catches false positives)', () => {
+    expect(checkHtml(page('') + '\n<script>x.replace(/\\uFFFD+$/, "")</script>').filter((p) => p.includes('U+FFFD'))).toEqual([]);
+  });
   it('fails a page over 16 MB (catches a missing size limit)', () => {
     const big = page('') + 'x'.repeat(16 * 1024 * 1024);
     expect(checkHtml(big).some((p) => p.includes('byte limit'))).toBe(true);

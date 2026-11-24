@@ -19,6 +19,12 @@ export function checkHtml(html) {
   const bytes = Buffer.byteLength(html, 'utf8');
   if (bytes > MAX_BYTES) problems.push(`page is ${bytes} bytes, over the ${MAX_BYTES} byte limit`);
 
+  // The artifact publisher refuses a page containing a literal U+FFFD (a lost character).
+  const lines = html.split('\n');
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].includes('\uFFFD')) problems.push(`literal U+FFFD (replacement character) on line ${i + 1}; write it as an escape in source`);
+  }
+
   // Inline script/style bodies are code, not markup: blank them so strings inside do not look like tags.
   const markup = html.replace(/(<(script|style)\b[^>]*>)[\s\S]*?(<\/\2>)/gi, '$1$3');
 

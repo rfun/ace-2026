@@ -86,6 +86,20 @@ describe('truncateToBytes', () => {
     const out = truncateToBytes('ab½½', 3); // a b + first byte of a 2-byte char
     expect(out).toBe('ab');
   });
+  it('leaves no trailing replacement char and stays within the limit when cutting an emoji or e-acute', () => {
+    const bad = String.fromCharCode(0xfffd);
+    for (const [text, limit, want] of [
+      ['ab\u{1F600}', 4, 'ab'], // emoji is 4 bytes; cut after 2 of them
+      ['ab\u{1F600}', 5, 'ab'],
+      ['abc\u00e9', 4, 'abc'], // e-acute is 2 bytes; cut after 1
+      ['abc\u00e9', 5, 'abc\u00e9'],
+    ] as const) {
+      const out = truncateToBytes(text, limit);
+      expect(out).toBe(want);
+      expect(out.includes(bad)).toBe(false);
+      expect(new TextEncoder().encode(out).length).toBeLessThanOrEqual(limit);
+    }
+  });
   it('returns everything when it fits and nothing for a zero budget', () => {
     expect(truncateToBytes('abc', 10)).toBe('abc');
     expect(truncateToBytes('abc', 0)).toBe('');
