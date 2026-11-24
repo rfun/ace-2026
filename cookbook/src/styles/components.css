@@ -54,5 +54,5 @@
 }
 
 /* Quiet shell notice (e.g. shared storage unreachable): small typed line on the tin, no alarm colours. */
-.shell-notice { margin: 0; padding: 8px 24px; font: 400 14px/20px var(--font-typed); color: var(--card); opacity: 0.85; }
+.shell-notice { margin: 0; padding: 8px 24px; font: 400 14px/20px var(--font-typed); color: var(--card); }
 @media (max-width: 600px) { .shell-notice { padding: 8px 12px; } }

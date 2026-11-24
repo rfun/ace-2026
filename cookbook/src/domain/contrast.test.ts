@@ -74,6 +74,14 @@ describe('tin ground', () => {
     expect(ratio(token('--card'), token('--tin-hi'))).toBeGreaterThanOrEqual(3);
     expect(ratio(token('--card'), token('--tin-lo'))).toBeGreaterThanOrEqual(3);
   });
+  it('the shell notice is solid card colour with no opacity, so it keeps 4.5:1 on both gradient ends (catches a faded notice dropping below 4.5:1)', () => {
+    const css: string = readFileSync('src/styles/components.css', 'utf8');
+    const rule = /\.shell-notice \{([^}]*)\}/.exec(css);
+    if (!rule) throw new Error('.shell-notice rule not found');
+    expect(rule[1]).toMatch(/color:\s*var\(--card\)/);
+    expect(rule[1]).not.toMatch(/opacity/);
+    for (const bg of [token('--tin-hi'), token('--tin-lo')]) expect(ratio(token('--card'), bg)).toBeGreaterThanOrEqual(4.5);
+  });
   it('the gradient runs from --tin-hi to --tin-lo (catches the page ground drifting from the tin tokens)', () => {
     expect(tokensCss).toMatch(/--ground:\s*radial-gradient\([^)]*var\(--tin-hi\)[^)]*var\(--tin-lo\)/);
   });
