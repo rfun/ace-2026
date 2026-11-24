@@ -35,6 +35,7 @@ export const SAMPLE_RECIPES: Recipe[] = [
     occasions: ['Diwali'],
     course: 'sweets',
     dietary: ['vegetarian', 'gluten-free'],
+    serves: 8,
     makes: 'Makes 16',
     totalMinutes: 40,
     story:
@@ -80,6 +81,7 @@ export const SAMPLE_RECIPES: Recipe[] = [
     occasions: ['Lunar New Year'],
     course: 'breakfast',
     dietary: ['vegan', 'dairy-free', 'nut-free'],
+    serves: 4,
     makes: 'Serves 4',
     totalMinutes: 60,
     story: 'A sample recipe used to show how a savory card looks. Not a real family recipe.',

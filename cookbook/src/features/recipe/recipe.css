@@ -38,6 +38,10 @@
 .rc-ing { list-style: none; margin: 0 0 var(--rule-gap); padding: 0; }
 .rc-ing li { display: grid; grid-template-columns: 108px 1fr; align-items: baseline; }
 .rc-qty { font: 400 22px/var(--rule-gap) var(--font-hand); color: var(--pen-navy); }
+/* The servings row is exactly two rule gaps, so the ingredient lines below it stay on the rules. */
+.rc-ruled .sv-ctl { height: calc(var(--rule-gap) * 2); }
+.rc-ing-noted { margin-bottom: 0; }
+.rc-note { margin: 0 0 var(--rule-gap); font: 400 15px/var(--rule-gap) var(--font-read); color: var(--ink-soft); }
 .rc-steps { list-style: none; margin: 0; padding: 0; counter-reset: s; }
 .rc-steps li { counter-increment: s; position: relative; padding-left: 38px; display: flow-root; }
 .rc-steps li::before { content: counter(s); position: absolute; left: 4px; font: 400 24px/var(--rule-gap) var(--font-hand); color: var(--margin); }

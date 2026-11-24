@@ -8,6 +8,8 @@ export interface ImportedRecipe {
   occasions?: string[];
   course?: Course;
   dietary?: DietaryTag[];
+  /** Portions, a whole number from 1 to 100, only when the source states a number. */
+  serves?: number;
   makes?: string;
   totalMinutes?: number;
   ingredients?: Ingredient[];

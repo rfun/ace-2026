@@ -37,3 +37,21 @@ describe('asset id validation', () => {
     expect(parseTip(rawTip({ assetId: good, alt: 'pic' }), 'u1')!.photo?.assetId).toBe(good);
   });
 });
+
+describe('serves', () => {
+  const withServes = (serves: unknown) => parseRecipe({ ...rawRecipe(), serves }, 'u1')!;
+  // Catches: a legacy doc without serves failing to load, or bad values becoming errors or NaN scalers.
+  it('loads a doc with no serves, leaving it undefined', () => {
+    const r = parseRecipe(rawRecipe(), 'u1');
+    expect(r).not.toBeNull();
+    expect(r!.serves).toBeUndefined();
+  });
+  it.each([1, 4, 100])('keeps serves %j', (n) => {
+    expect(withServes(n).serves).toBe(n);
+  });
+  it.each([0, 101, -1, 2.5, '4', null, NaN, {}])('drops serves %j but keeps the recipe', (bad) => {
+    const r = withServes(bad);
+    expect(r.title).toBe('Dal');
+    expect('serves' in r).toBe(false);
+  });
+});

@@ -111,6 +111,16 @@ function yieldText(v: unknown): string | undefined {
   return /^\d+$/.test(t) ? `Serves ${t}` : t;
 }
 
+/** A numeric recipeYield (4, "4", "4 servings") is a portion count; "24 ladoos" is not. */
+function yieldServes(v: unknown): number | undefined {
+  for (const x of Array.isArray(v) ? v : [v]) {
+    const s = typeof x === 'number' ? String(x) : typeof x === 'string' ? x.trim() : '';
+    const m = /^(\d{1,3})(?:\s*servings?)?$/i.exec(s);
+    if (m) return Number(m[1]);
+  }
+  return undefined;
+}
+
 const DIET_MAP: Record<string, DietaryTag> = {
   vegetariandiet: 'vegetarian',
   vegandiet: 'vegan',
@@ -163,6 +173,7 @@ export function recipeFromJsonLd(text: string): ImportedRecipe | undefined {
     origin: cuisine ? plain(cuisine) : undefined,
     course: courseFrom(node.recipeCategory),
     dietary,
+    serves: yieldServes(node.recipeYield),
     makes: yieldText(node.recipeYield),
     totalMinutes: total ?? (sum > 0 ? sum : undefined),
     ingredients: strings(node.recipeIngredient).map((s) => splitIngredient(plain(s))),

@@ -36,6 +36,7 @@ function fillRequired() {
   type(/^The story behind it/, 'A fake story for a fake dal.');
   type(/^Culture or region/, 'Testland');
   type(/^Course/, 'main');
+  type(/^Serves/, '4');
   type('Ingredient 1 Ingredient', 'lentils');
   type('Step 1', 'Simmer the lentils.');
 }
@@ -140,6 +141,68 @@ describe('ComposePage validation', () => {
   });
 });
 
+describe('ComposePage serves', () => {
+  it('shows a labelled required Serves number input with a hint, min 1 and max 100 (catches a missing or unlabelled field)', async () => {
+    await ready(createMockStore({ me: author }));
+    const input = screen.getByLabelText(/^Serves/);
+    expect(input).toHaveAttribute('type', 'number');
+    expect(input).toHaveAttribute('inputmode', 'numeric');
+    expect(input).toHaveAttribute('min', '1');
+    expect(input).toHaveAttribute('max', '100');
+    expect(input).toHaveAttribute('aria-required', 'true');
+    expect(screen.getByText('How many portions this makes')).toBeInTheDocument();
+  });
+
+  it.each([
+    ['empty', ''],
+    ['zero', '0'],
+    ['101 (just over the limit)', '101'],
+    ['a decimal', '2.5'],
+    ['negative', '-3'],
+  ])('blocks save and flags the field when Serves is %s (catches saving a bad or missing portion count)', async (_n, value) => {
+    const store = createMockStore({ me: author });
+    const spy = vi.spyOn(store, 'saveRecipe');
+    await ready(store);
+    fillRequired();
+    type(/^Serves/, value);
+    save();
+    const summary = await screen.findByRole('alert');
+    expect(within(summary).getByRole('link', { name: /portions this makes/ })).toBeInTheDocument();
+    expect(screen.getByLabelText(/^Serves/)).toHaveAttribute('aria-invalid', 'true');
+    expect(spy).not.toHaveBeenCalled();
+  });
+
+  it.each(['1', '100'])('accepts the boundary value %s and stores it as a number (catches an off-by-one on the range)', async (value) => {
+    const store = createMockStore({ me: author });
+    await ready(store);
+    fillRequired();
+    type(/^Serves/, value);
+    save();
+    await waitFor(() => expect(window.location.hash).toMatch(/^#\/recipe\/r-/));
+    const saved = await store.getRecipe(decodeURIComponent(window.location.hash.replace('#/recipe/', '')));
+    expect(saved!.serves).toBe(Number(value));
+  });
+
+  it('pre-fills Serves when editing and keeps it on save (catches losing serves on edit)', async () => {
+    const store = createMockStore({ me: author });
+    await ready(store, ID);
+    expect(screen.getByLabelText(/^Serves/)).toHaveValue(8);
+    type(/^Serves/, '12');
+    save();
+    await waitFor(() => expect(window.location.hash).toBe(`#/recipe/${ID}`));
+    expect((await store.getRecipe(ID))!.serves).toBe(12);
+  });
+
+  it('asks an existing recipe without serves to gain one before it can be saved (catches skipping the required rule on edit)', async () => {
+    const store = createMockStore({ me: { id: 'u-sam', canWrite: true, canModerate: false } });
+    await ready(store, 'r-example-empanadas');
+    expect(screen.getByLabelText(/^Serves/)).toHaveValue(null);
+    save();
+    expect((await screen.findAllByText(/portions this makes/)).length).toBeGreaterThan(0);
+    expect((await store.getRecipe('r-example-empanadas'))!.serves).toBeUndefined();
+  });
+});
+
 describe('ComposePage saving', () => {
   it('saves a new recipe, drops empty rows, navigates to it and stores it (catches a lost save or kept blank rows)', async () => {
     const store = createMockStore({ me: author });
@@ -163,6 +226,7 @@ describe('ComposePage saving', () => {
       occasions: ['Diwali', 'weddings'],
       dietary: ['vegan'],
       totalMinutes: 45,
+      serves: 4,
       authorId: 'u-jordan',
     });
     expect(saved!.ingredients).toEqual([{ quantity: '1 cup', item: 'lentils' }]);

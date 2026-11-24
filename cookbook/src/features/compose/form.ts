@@ -20,6 +20,7 @@ export interface FormState {
   dietary: DietaryTag[];
   team: string;
   city: string;
+  serves: string;
   makes: string;
   minutes: string;
   ingredients: IngredientRow[];
@@ -39,7 +40,7 @@ export function newKey(prefix: string): string {
 
 export function blankForm(): FormState {
   return {
-    title: '', story: '', origin: '', occasions: '', course: '', dietary: [], team: '', city: '', makes: '', minutes: '',
+    title: '', story: '', origin: '', occasions: '', course: '', dietary: [], team: '', city: '', serves: '', makes: '', minutes: '',
     ingredients: [{ key: newKey('i'), quantity: '', item: '' }],
     steps: [{ key: newKey('s'), text: '', slot: emptySlot() }],
     main: emptySlot(),
@@ -60,6 +61,7 @@ export function formFromRecipe(r: Recipe): FormState {
     dietary: [...r.dietary],
     team: r.team ?? '',
     city: r.city ?? '',
+    serves: r.serves === undefined ? '' : String(r.serves),
     makes: r.makes ?? '',
     minutes: r.totalMinutes === undefined ? '' : String(r.totalMinutes),
     ingredients: r.ingredients.length
@@ -84,6 +86,8 @@ export function validate(f: FormState): Errors {
   if (blank(f.story)) e['f-story'] = 'Tell the story behind this dish.';
   if (blank(f.origin)) e['f-origin'] = 'Say which culture or region it comes from.';
   if (f.course === '') e['f-course'] = 'Choose a course.';
+  const sv = f.serves.trim();
+  if (!/^[0-9]+$/.test(sv) || Number(sv) < 1 || Number(sv) > 100) e['f-serves'] = 'Say how many portions this makes, a whole number from 1 to 100.';
   const m = f.minutes.trim();
   if (m !== '' && !/^[1-9][0-9]*$/.test(m)) e['f-minutes'] = 'Use a whole number of minutes, like 45, or leave it empty.';
 
@@ -128,6 +132,7 @@ export function toDraft(f: FormState, loaded?: Recipe): RecipeDraft {
   };
   if (!blank(f.team)) draft.team = f.team.trim();
   if (!blank(f.city)) draft.city = f.city.trim();
+  draft.serves = Number(f.serves.trim());
   if (!blank(f.makes)) draft.makes = f.makes.trim();
   if (f.minutes.trim() !== '') draft.totalMinutes = Number(f.minutes.trim());
   const main = withAlt(f.main);
@@ -169,7 +174,7 @@ export function loadStoredDraft(): FormState | null {
 
 export function isBlankForm(f: FormState): boolean {
   return (
-    [f.title, f.story, f.origin, f.occasions, f.team, f.city, f.makes, f.minutes].every(blank) &&
+    [f.title, f.story, f.origin, f.occasions, f.team, f.city, f.serves, f.makes, f.minutes].every(blank) &&
     f.course === '' &&
     f.dietary.length === 0 &&
     f.ingredients.every((i) => blank(i.quantity) && blank(i.item)) &&

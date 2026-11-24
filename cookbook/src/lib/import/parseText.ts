@@ -21,9 +21,16 @@ const clean = (line: string): string =>
 
 interface Meta {
   makes?: string;
+  serves?: number;
   total?: number;
   prep?: number;
   cook?: number;
+}
+
+/** "4", "4 servings", "6 people": a single whole number of portions. Ranges like "4-6" are left to the member. */
+function servesNumber(v: string): number | undefined {
+  const m = /^(\d{1,3})(?:\s*(?:servings?|people|persons?|portions?|adults?))?\.?$/i.exec(v.trim());
+  return m ? Number(m[1]) : undefined;
 }
 
 const YIELD_RE = /^(serves|servings?|makes|yields?)\s*:?\s*(.*)$/i;
@@ -43,7 +50,11 @@ function readMeta(line: string, next: string | undefined, into: Meta): { matched
       }
       if (v !== '' && v.length <= 40) {
         const label = y[1].toLowerCase();
-        if (label.startsWith('serv')) into.makes = `Serves ${v}`;
+        if (label.startsWith('serv')) {
+          into.makes = `Serves ${v}`;
+          const n = servesNumber(v);
+          if (n !== undefined) into.serves = n;
+        }
         else into.makes = /^\d+$/.test(v) ? `Makes ${v}` : v;
         matched = true;
         continue;
@@ -159,6 +170,7 @@ export function parseRecipeText(text: string): ImportedRecipe {
     out.steps = loose;
   }
   if (meta.makes) out.makes = meta.makes;
+  if (meta.serves !== undefined) out.serves = meta.serves;
   const mins = minutesOf(meta);
   if (mins !== undefined) out.totalMinutes = mins;
   const result = normalizeImported(out);
