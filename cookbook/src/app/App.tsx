@@ -1,5 +1,6 @@
 import '../styles/tokens.css';
 import '../styles/base.css';
+import '../styles/components.css';
 import { formatHash, navigate, useRoute } from './router';
 import logo from '../assets/ace-logo.png';
 import Browse from '../features/browse';

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { MouseEvent } from 'react';
 import { formatHash, navigate } from '../../app/router';
 import { useStore } from '../../data/StoreProvider';
-import { COURSES, DIETARY } from '../../domain/tags';
+import { COURSES, DIETARY, stockClass } from '../../domain/tags';
 import type { Course, DietaryTag, Me, Person, Recipe, UserId } from '../../domain/types';
 import { activeCount, applyFilters, distinctSorted, EMPTY_FILTERS } from './filters';
 import type { BrowseFilters } from './filters';
@@ -46,12 +46,13 @@ function Card(props: { recipe: Recipe; author: string }): JSX.Element {
   };
   return (
     <li className="bw-li">
-      <a className="bw-card" href={formatHash({ name: 'recipe', id: recipe.id })} onClick={go}>
+      <a className={`bw-card ${stockClass(recipe.course)}`} href={formatHash({ name: 'recipe', id: recipe.id })} onClick={go}>
         {recipe.mainPhoto && (
-          <figure className="bw-snap">
+          <figure className="snap bw-snap">
             <img src={recipe.mainPhoto.url} alt={recipe.mainPhoto.alt} loading="lazy" />
           </figure>
         )}
+        <span className="bw-course" aria-hidden="true">{COURSES[recipe.course]?.label ?? recipe.course}</span>
         <span className="bw-title">{recipe.title}</span>
         <span className="bw-by">From the kitchen of {author}</span>
         <span className="bw-meta">
@@ -60,7 +61,7 @@ function Card(props: { recipe: Recipe; author: string }): JSX.Element {
         {recipe.dietary.length > 0 && (
           <span className="bw-stamps">
             {recipe.dietary.map((d) => (
-              <span className="bw-stamp" key={d}>
+              <span className={`stamp stamp-${DIETARY[d]?.ink}`} key={d}>
                 <span aria-hidden="true">{DIETARY[d]?.symbol} </span>
                 {DIETARY[d]?.label ?? d}
               </span>
@@ -74,7 +75,7 @@ function Card(props: { recipe: Recipe; author: string }): JSX.Element {
 
 function AddButton(): JSX.Element {
   return (
-    <button type="button" className="bw-btn" onClick={() => navigate({ name: 'compose' })}>
+    <button type="button" className="btn btn-prop" onClick={() => navigate({ name: 'compose' })}>
       Add a recipe
     </button>
   );
@@ -122,7 +123,7 @@ export default function BrowsePage(): JSX.Element {
 
   if (data.status === 'loading') {
     return (
-      <div className="bw-ground" aria-busy="true">
+      <div className="bw-ground on-enamel" aria-busy="true">
         <ul className="bw-grid" aria-hidden="true">
           {[0, 1, 2].map((i) => (
             <li key={i} className="bw-li"><div className="bw-card bw-card-blank" /></li>
@@ -134,10 +135,10 @@ export default function BrowsePage(): JSX.Element {
 
   if (data.status === 'error') {
     return (
-      <div className="bw-ground">
+      <div className="bw-ground on-enamel">
         <div className="bw-note">
           <p className="bw-note-title">Couldn&apos;t open the tin. Try again.</p>
-          <button type="button" className="bw-btn" onClick={() => void load()}>Retry</button>
+          <button type="button" className="btn btn-prop" onClick={() => void load()}>Retry</button>
         </div>
       </div>
     );
@@ -148,7 +149,7 @@ export default function BrowsePage(): JSX.Element {
 
   if (recipes.length === 0) {
     return (
-      <div className="bw-ground">
+      <div className="bw-ground on-enamel">
         <div className="bw-note">
           <p className="bw-note-title">The tin is empty. Add the first recipe.</p>
           {me.canWrite && <AddButton />}
@@ -171,7 +172,7 @@ export default function BrowsePage(): JSX.Element {
   ];
 
   return (
-    <div className="bw-ground">
+    <div className="bw-ground on-enamel">
       <div className="bw-top">
         <h1 className="bw-h1">The recipe tin</h1>
         {me.canWrite && <AddButton />}
@@ -188,7 +189,7 @@ export default function BrowsePage(): JSX.Element {
         />
         <button
           type="button"
-          className="bw-btn bw-toggle"
+          className="btn btn-prop bw-toggle"
           aria-expanded={open}
           aria-controls="bw-filters"
           onClick={() => setOpen((o) => !o)}
@@ -232,7 +233,7 @@ export default function BrowsePage(): JSX.Element {
               {a.label} <span aria-hidden="true">×</span>
             </button>
           ))}
-          <button type="button" className="bw-quiet" onClick={clearAll}>Clear all filters</button>
+          <button type="button" className="quiet quiet-light" onClick={clearAll}>Clear all filters</button>
         </div>
       )}
 
@@ -241,7 +242,7 @@ export default function BrowsePage(): JSX.Element {
       {visible.length === 0 ? (
         <div className="bw-note">
           <p className="bw-note-title">No cards match these filters.</p>
-          <button type="button" className="bw-btn" onClick={clearAll}>Clear filters</button>
+          <button type="button" className="btn btn-prop" onClick={clearAll}>Clear filters</button>
         </div>
       ) : (
         <ul className="bw-grid">

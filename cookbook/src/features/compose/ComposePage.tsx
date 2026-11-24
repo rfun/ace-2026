@@ -38,7 +38,7 @@ function goTo(route: Parameters<typeof navigate>[0]) {
 function Shell(props: { tab: string; children: React.ReactNode; busy?: boolean }): JSX.Element {
   return (
     <div className="cp-ground" aria-busy={props.busy ? true : undefined}>
-      <nav className="cp-tabs" aria-label="Recipe location">
+      <nav className="cp-tabs on-enamel" aria-label="Recipe location">
         <a className="cp-tab" href={formatHash({ name: 'browse' })} onClick={goTo({ name: 'browse' })}>
           All recipes
         </a>
@@ -93,7 +93,7 @@ function PhotoField(props: {
     <div className="cp-photo">
       <input
         id={`f-file-${props.id}`}
-        className="cp-sr"
+        className="sr-only"
         type="file"
         accept="image/*"
         capture={props.capture ? 'environment' : undefined}
@@ -101,7 +101,7 @@ function PhotoField(props: {
         disabled={slot.status === 'uploading' || !!slot.photo}
       />
       {!slot.photo && (
-        <label className="cp-btn cp-btn-prop cp-filebtn" htmlFor={`f-file-${props.id}`}>
+        <label className="btn btn-prop cp-filebtn" htmlFor={`f-file-${props.id}`}>
           {slot.status === 'uploading' ? 'Uploading…' : props.label}
         </label>
       )}
@@ -109,11 +109,11 @@ function PhotoField(props: {
       {slot.status === 'error' && <p className="cp-err" role="alert">{slot.error}</p>}
       {slot.photo && (
         <div className="cp-snaprow">
-          <figure className="cp-snap">
+          <figure className="snap cp-snap">
             <img src={slot.photo.url} alt={slot.alt || 'Photo preview'} />
           </figure>
           <div className="cp-snapfields">
-            <label className="cp-label" htmlFor={altId}>Photo description (alt text) <span aria-hidden="true">*</span></label>
+            <label className="label" htmlFor={altId}>Photo description (alt text) <span aria-hidden="true">*</span></label>
             <input
               id={altId}
               className="cp-input"
@@ -124,7 +124,7 @@ function PhotoField(props: {
               {...errProps(altId, props.errors)}
             />
             <FieldError id={altId} errors={props.errors} />
-            <button type="button" className="cp-quiet" onClick={props.onRemove}>Remove photo</button>
+            <button type="button" className="quiet" onClick={props.onRemove}>Remove photo</button>
           </div>
         </div>
       )}
@@ -170,7 +170,7 @@ function TextField(props: {
   };
   return (
     <div className={`cp-field ${props.className ?? ''}`}>
-      <label className="cp-label" htmlFor={props.id}>
+      <label className="label" htmlFor={props.id}>
         {props.label}
         {props.required && <span aria-hidden="true"> *</span>}
       </label>
@@ -347,7 +347,7 @@ export default function ComposePage(props: { id?: string }): JSX.Element {
       <form className="cp-card" onSubmit={onSubmit} noValidate aria-labelledby="cp-heading">
         <header className="cp-head">
           <h1 className="cp-title" id="cp-heading">{isNew ? 'New recipe card' : 'Edit recipe card'}</h1>
-          <p className="cp-line">Fields marked <span aria-hidden="true">*</span><span className="cp-sr">with an asterisk</span> are required.</p>
+          <p className="cp-line">Fields marked <span aria-hidden="true">*</span><span className="sr-only">with an asterisk</span> are required.</p>
           {isNew && restored && (
             <p className="cp-note" role="status">
               We kept your unsaved draft from last time.
@@ -387,7 +387,7 @@ export default function ComposePage(props: { id?: string }): JSX.Element {
               hint="Separate with commas: Diwali, birthdays" onChange={(v) => patch({ occasions: v })}
             />
             <div className="cp-field">
-              <label className="cp-label" htmlFor="f-course">Course <span aria-hidden="true">*</span></label>
+              <label className="label" htmlFor="f-course">Course <span aria-hidden="true">*</span></label>
               <select
                 id="f-course" className="cp-input" value={form.course} aria-required="true"
                 onChange={(e) => patch({ course: e.target.value as Course | '' })} {...errProps('f-course', errors)}
@@ -406,7 +406,7 @@ export default function ComposePage(props: { id?: string }): JSX.Element {
           </div>
 
           <fieldset className="cp-set">
-            <legend className="cp-label">Dietary notes</legend>
+            <legend className="label">Dietary notes</legend>
             <div className="cp-checks">
               {(Object.keys(DIETARY) as DietaryTag[]).map((d) => (
                 <label key={d} className="cp-check">
@@ -425,7 +425,7 @@ export default function ComposePage(props: { id?: string }): JSX.Element {
           </fieldset>
 
           <fieldset className="cp-set">
-            <legend className="cp-label">Main photo</legend>
+            <legend className="label">Main photo</legend>
             <PhotoField
               id="main" label="Add a main photo" slot={form.main} errors={errors}
               onFile={(file) => void upload({ kind: 'main' }, file, form.title.trim())}
@@ -435,7 +435,7 @@ export default function ComposePage(props: { id?: string }): JSX.Element {
           </fieldset>
 
           <fieldset className="cp-set">
-            <legend className="cp-label">Ingredients <span aria-hidden="true">*</span></legend>
+            <legend className="label">Ingredients <span aria-hidden="true">*</span></legend>
             <ul className="cp-rows">
               {form.ingredients.map((ing, idx) => {
                 const eid = `f-ing-${idx}`;
@@ -444,11 +444,11 @@ export default function ComposePage(props: { id?: string }): JSX.Element {
                 return (
                   <li key={ing.key} className="cp-row cp-ing">
                     <div className="cp-qty">
-                      <label className="cp-label cp-small" htmlFor={`f-qty-${idx}`}>Ingredient {idx + 1} amount</label>
+                      <label className="label" htmlFor={`f-qty-${idx}`}>Ingredient {idx + 1} amount</label>
                       <input id={`f-qty-${idx}`} className="cp-input cp-hand" type="text" value={ing.quantity} onChange={(e) => set({ quantity: e.target.value })} />
                     </div>
                     <div className="cp-item">
-                      <label className="cp-label cp-small" htmlFor={eid}>Ingredient {idx + 1} name</label>
+                      <label className="label" htmlFor={eid}>Ingredient {idx + 1} name</label>
                       <input id={eid} className="cp-input" type="text" value={ing.item} onChange={(e) => set({ item: e.target.value })} {...errProps(eid, errors)} />
                       <FieldError id={eid} errors={errors} />
                     </div>
@@ -461,13 +461,13 @@ export default function ComposePage(props: { id?: string }): JSX.Element {
                 );
               })}
             </ul>
-            <button type="button" className="cp-btn cp-btn-prop" onClick={() => patch({ ingredients: [...form.ingredients, { key: newKey('i'), quantity: '', item: '' }] })}>
+            <button type="button" className="btn btn-prop" onClick={() => patch({ ingredients: [...form.ingredients, { key: newKey('i'), quantity: '', item: '' }] })}>
               Add an ingredient
             </button>
           </fieldset>
 
           <fieldset className="cp-set">
-            <legend className="cp-label">Steps <span aria-hidden="true">*</span></legend>
+            <legend className="label">Steps <span aria-hidden="true">*</span></legend>
             <ol className="cp-rows cp-steps">
               {form.steps.map((step, idx) => {
                 const sid = `f-step-${idx}`;
@@ -476,7 +476,7 @@ export default function ComposePage(props: { id?: string }): JSX.Element {
                 return (
                   <li key={step.key} className="cp-row cp-step">
                     <div className="cp-stepmain">
-                      <label className="cp-label cp-small" htmlFor={sid}>Step {idx + 1}</label>
+                      <label className="label" htmlFor={sid}>Step {idx + 1}</label>
                       <textarea id={sid} className="cp-input cp-area" rows={3} value={step.text} onChange={(e) => set({ text: e.target.value })} {...errProps(sid, errors)} />
                       <FieldError id={sid} errors={errors} />
                       <PhotoField
@@ -495,7 +495,7 @@ export default function ComposePage(props: { id?: string }): JSX.Element {
                 );
               })}
             </ol>
-            <button type="button" className="cp-btn cp-btn-prop" onClick={() => patch({ steps: [...form.steps, { key: newKey('s'), text: '', slot: emptySlot() }] })}>
+            <button type="button" className="btn btn-prop" onClick={() => patch({ steps: [...form.steps, { key: newKey('s'), text: '', slot: emptySlot() }] })}>
               Add a step
             </button>
           </fieldset>
@@ -505,11 +505,11 @@ export default function ComposePage(props: { id?: string }): JSX.Element {
           {saveFailed && <p className="cp-err" role="alert">Couldn&apos;t save. Your text is still here.</p>}
           {uploading && <p className="cp-note" role="status">Waiting for photos to finish uploading…</p>}
           <div className="cp-actions">
-            <button type="submit" className="cp-btn" disabled={saving || uploading}>
+            <button type="submit" className="btn" disabled={saving || uploading}>
               {saving ? 'Saving…' : 'Save recipe'}
             </button>
-            <a className="cp-quiet" href={formatHash(cancelRoute)} onClick={goTo(cancelRoute)}>Cancel</a>
-            {isNew && <button type="button" className="cp-quiet" onClick={discardDraft}>Discard draft</button>}
+            <a className="quiet" href={formatHash(cancelRoute)} onClick={goTo(cancelRoute)}>Cancel</a>
+            {isNew && <button type="button" className="quiet" onClick={discardDraft}>Discard draft</button>}
           </div>
         </footer>
       </form>

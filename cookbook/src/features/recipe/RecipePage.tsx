@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { MouseEvent } from 'react';
 import { formatHash, navigate } from '../../app/router';
 import { useStore } from '../../data/StoreProvider';
-import { COURSES, DIETARY } from '../../domain/tags';
+import { COURSES, DIETARY, stockClass } from '../../domain/tags';
 import type { Me, Person, Photo, Recipe, Tip, UserId } from '../../domain/types';
 import { TipComposer } from '../tips';
 import { penFor } from './pens';
@@ -28,7 +28,7 @@ function goBrowse(e: MouseEvent): void {
 
 function Snapshot(props: { photo: Photo; className: string }): JSX.Element {
   return (
-    <figure className={`rc-snap ${props.className}`}>
+    <figure className={`snap ${props.className}`}>
       <img src={props.photo.url} alt={props.photo.alt} loading="lazy" />
     </figure>
   );
@@ -45,10 +45,10 @@ function BackTab(): JSX.Element {
   );
 }
 
-function Shell(props: { tabs: JSX.Element; children: JSX.Element; busy?: boolean }): JSX.Element {
+function Shell(props: { tabs: JSX.Element; children: JSX.Element; busy?: boolean; stock?: string }): JSX.Element {
   return (
-    <div className="rc-ground" aria-busy={props.busy ? true : undefined}>
-      <nav className="rc-tabs" aria-label="Recipe location">
+    <div className={`rc-ground ${props.stock ?? ''}`} aria-busy={props.busy ? true : undefined}>
+      <nav className="rc-tabs on-enamel" aria-label="Recipe location">
         {props.tabs}
       </nav>
       {props.children}
@@ -144,7 +144,7 @@ export default function RecipePage(props: { id: string; onAddTip?: () => void })
           <div className="rc-head">
             <h1 className="rc-title">Couldn&apos;t open this card. Try again.</h1>
             <p className="rc-by">
-              <button type="button" className="rc-btn rc-btn-prop" onClick={retry}>
+              <button type="button" className="btn btn-prop" onClick={retry}>
                 Try again
               </button>
             </p>
@@ -195,7 +195,7 @@ export default function RecipePage(props: { id: string; onAddTip?: () => void })
   );
 
   return (
-    <Shell tabs={tabs}>
+    <Shell tabs={tabs} stock={stockClass(recipe.course)}>
       <article className="rc-card">
         <header className="rc-head">
           <h1 className="rc-title">{recipe.title}</h1>
@@ -203,22 +203,22 @@ export default function RecipePage(props: { id: string; onAddTip?: () => void })
           {teamCity && <p className="rc-line">{teamCity}</p>}
           <p className="rc-meta">{meta.join(' · ')}</p>
           <ul className="rc-stamps" aria-label="Dietary notes">
-            {recipe.sample && <li className="rc-stamp rc-stamp-sample">Sample recipe</li>}
+            {recipe.sample && <li className="stamp stamp-sample">Sample recipe</li>}
             {recipe.dietary.map((tag) => (
-              <li key={tag} className="rc-stamp">
+              <li key={tag} className={`stamp stamp-${DIETARY[tag].ink}`}>
                 <span aria-hidden="true">{DIETARY[tag].symbol} </span>
                 {DIETARY[tag].label}
               </li>
             ))}
           </ul>
           <div className="rc-actions">
-            <button type="button" className="rc-btn rc-btn-prop" onClick={() => navigate({ name: 'kitchen', id: recipe.id })}>
+            <button type="button" className="btn btn-prop" onClick={() => navigate({ name: 'kitchen', id: recipe.id })}>
               Prop it up
             </button>
             {me.canModerate && (
               <button
                 type="button"
-                className="rc-quiet"
+                className="quiet"
                 onClick={() => void store.setHidden('recipe', recipe.id, !recipe.hidden)}
               >
                 {recipe.hidden ? 'Unhide' : 'Hide'}
@@ -231,14 +231,14 @@ export default function RecipePage(props: { id: string; onAddTip?: () => void })
         <div className="rc-ruled">
           <div className="rc-body">
             <section aria-labelledby="rc-h-story" className="rc-sec">
-              <h2 id="rc-h-story" className="rc-sr">
+              <h2 id="rc-h-story" className="sr-only">
                 Story
               </h2>
               <p className="rc-story">{recipe.story}</p>
             </section>
 
             <section aria-labelledby="rc-h-ing" className="rc-sec">
-              <h2 id="rc-h-ing" className="rc-label">
+              <h2 id="rc-h-ing" className="label">
                 Ingredients
               </h2>
               <ul className="rc-ing">
@@ -252,7 +252,7 @@ export default function RecipePage(props: { id: string; onAddTip?: () => void })
             </section>
 
             <section aria-labelledby="rc-h-steps" className="rc-sec">
-              <h2 id="rc-h-steps" className="rc-label">
+              <h2 id="rc-h-steps" className="label">
                 Steps
               </h2>
               <ol className="rc-steps">
@@ -267,7 +267,7 @@ export default function RecipePage(props: { id: string; onAddTip?: () => void })
           </div>
 
           <section aria-labelledby="rc-h-tips" className="rc-margin">
-            <h2 id="rc-h-tips" className="rc-margin-label">
+            <h2 id="rc-h-tips" className="label label-ink rc-margin-label">
               Tips from the tin
             </h2>
             {tips.length === 0 ? (
@@ -283,7 +283,7 @@ export default function RecipePage(props: { id: string; onAddTip?: () => void })
                     {me.canModerate && (
                       <button
                         type="button"
-                        className="rc-quiet"
+                        className="quiet"
                         onClick={() => void store.setHidden('tip', tip.id, !tip.hidden)}
                       >
                         {tip.hidden ? 'Unhide' : 'Hide'}
@@ -299,7 +299,7 @@ export default function RecipePage(props: { id: string; onAddTip?: () => void })
               <button
                 type="button"
                 ref={addBtnRef}
-                className="rc-btn rc-btn-add"
+                className="btn"
                 onClick={() => (onAddTip ? onAddTip() : setComposing(true))}
               >
                 + Add your tip
