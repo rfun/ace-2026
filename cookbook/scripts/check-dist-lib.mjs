@@ -19,6 +19,12 @@ export function checkHtml(html) {
   const bytes = Buffer.byteLength(html, 'utf8');
   if (bytes > MAX_BYTES) problems.push(`page is ${bytes} bytes, over the ${MAX_BYTES} byte limit`);
 
+  // The artifact publisher refuses a page containing a literal U+FFFD (a lost character).
+  const lines = html.split('\n');
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].includes('\uFFFD')) problems.push(`literal U+FFFD (replacement character) on line ${i + 1}; write it as an escape in source`);
+  }
+
   // Inline script/style bodies are code, not markup: blank them so strings inside do not look like tags.
   const markup = html.replace(/(<(script|style)\b[^>]*>)[\s\S]*?(<\/\2>)/gi, '$1$3');
 
@@ -47,7 +53,11 @@ export function checkHtml(html) {
   return problems;
 }
 
-/** Flags use of dangerouslySetInnerHTML in app source text. */
+/** Flags dangerouslySetInnerHTML and literal U+FFFD (write it as an escape) in app source text. */
 export function checkSource(text, file) {
-  return text.includes('dangerouslySetInnerHTML') ? [`dangerouslySetInnerHTML used in ${file}`] : [];
+  const problems = [];
+  if (text.includes('dangerouslySetInnerHTML')) problems.push(`dangerouslySetInnerHTML used in ${file}`);
+  const line = text.split('\n').findIndex((l) => l.includes('\uFFFD'));
+  if (line >= 0) problems.push(`literal U+FFFD (replacement character) in ${file} line ${line + 1}; write it as an escape`);
+  return problems;
 }

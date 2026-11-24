@@ -39,7 +39,7 @@ export function truncateToBytes(text: string, maxBytes: number): string {
   if (!encoder || !decoder) return text.slice(0, Math.floor(maxBytes / 4));
   const bytes = encoder.encode(text);
   if (bytes.length <= maxBytes) return text;
-  return decoder.decode(bytes.slice(0, maxBytes)).replace(/�+$/, '');
+  return decoder.decode(bytes.slice(0, maxBytes)).replace(/\uFFFD+$/, '');
 }
 
 /** Ask Claude (the `sample` capability) to read pasted text and/or a photo. Rejects with whatever sample rejects with. */
