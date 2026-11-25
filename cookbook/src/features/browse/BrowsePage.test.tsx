@@ -232,7 +232,7 @@ describe('BrowsePage', () => {
     mount(createMockStore({ me: writer }));
     await screen.findByText('Besan Ladoo');
     const box = screen.getByLabelText('Search recipes');
-    expect(box).toHaveAttribute('placeholder', 'Search recipes, people, ingredients\u2026');
+    expect(box).toHaveAttribute('placeholder', 'Recipes, people, ingredients\u2026');
     fireEvent.change(box, { target: { value: 'pistachios' } }); // an ingredient of Besan Ladoo only
     expect(screen.getAllByRole('link').map((a) => a.textContent)).toEqual(['Besan Ladoo']);
     fireEvent.change(box, { target: { value: 'jordan' } });

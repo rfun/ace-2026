@@ -195,7 +195,8 @@ export default function BrowsePage(): JSX.Element {
           id="bw-search"
           type="search"
           className="bw-input"
-          placeholder={'Search recipes, people, ingredients\u2026'}
+          placeholder={'Recipes, people, ingredients\u2026'}
+          title="Search recipes, people, ingredients and steps"
           value={filters.text}
           onChange={(e) => set({ text: e.target.value })}
         />
