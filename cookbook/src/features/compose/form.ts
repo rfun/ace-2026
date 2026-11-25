@@ -4,7 +4,7 @@ import type { Course, DietaryTag, Photo, Recipe, RecipeDraft } from '../../domai
 export interface PhotoSlot {
   photo?: Photo;
   alt: string;
-  status: 'idle' | 'uploading' | 'error';
+  status: 'idle' | 'preparing' | 'uploading' | 'error';
   error?: string;
 }
 
@@ -143,7 +143,8 @@ export function toDraft(f: FormState, loaded?: Recipe): RecipeDraft {
 }
 
 export function isUploading(f: FormState): boolean {
-  return f.main.status === 'uploading' || f.steps.some((s) => s.slot.status === 'uploading');
+  const busy = (s: PhotoSlot) => s.status === 'uploading' || s.status === 'preparing';
+  return busy(f.main) || f.steps.some((s) => busy(s.slot));
 }
 
 // ---- unsaved new-recipe draft (text only, never photos) ----

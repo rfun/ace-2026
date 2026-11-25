@@ -9,19 +9,27 @@ npm ci            # install exact pinned dependencies
 npm run dev       # dev server
 npm run typecheck # tsc strict
 npm test          # vitest (jsdom)
-npm run build     # emits dist/index.html
-npm run check:dist # pre-publish checks on dist/index.html (run after build)
+npm run build     # emits dist/index.html and dist/heic-to.js
+npm run check:dist # pre-publish checks on dist/ (run after build)
 npm run release   # typecheck, test, build, then check:dist; exits non-zero on any failure
 ```
 
-`dist/index.html` has all JS and CSS inlined (vite-plugin-singlefile) and is the artifact page. Only the Google Fonts stylesheet is loaded externally.
+`dist/index.html` has all JS and CSS inlined (vite-plugin-singlefile) and is the artifact page. Only the Google Fonts stylesheet is loaded externally. The one exception is the HEIC converter, `dist/heic-to.js`, a separate file (see Publishing).
 
 Data goes through the `DataStore` interface (`src/data/store.ts`); `createMockStore()` is the in-memory/localStorage implementation seeded with clearly-fake sample recipes.
 
 ## Publishing
 
 1. `npm run release` (typecheck, tests, build, dist check). Fix anything it reports.
-2. Publish `dist/index.html` as the artifact page, declaring `CAPABILITIES` from `src/data/artifact/runtime.ts`.
+2. Publish `dist/index.html` as the artifact page, declaring `CAPABILITIES` from `src/data/artifact/runtime.ts`, **and publish `dist/heic-to.js` beside it** (the Artifact tool's `files` map: `{ "heic-to.js": "cookbook/dist/heic-to.js" }`). Publish exactly these two files; `npm run check:dist` fails if either is missing or if `index.html` grows past 400 KB.
+
+### The HEIC converter (`dist/heic-to.js`)
+
+iPhone photos are HEIC. Safari reads them natively; Chrome and Edge on Windows do not. The photo pipeline (`src/lib/image/prepare.ts`) tries the browser's own decoder first. Only if that fails for a HEIC/HEIF file does it fetch `./heic-to.js` (relative to the page, once per page load, cached) and convert to JPEG before the normal resize. Nobody downloads the roughly 3 MB file unless they pick a HEIC their browser cannot read. A raw HEIC is never uploaded.
+
+- The file is the `csp` build of [heic-to](https://github.com/hoppergee/heic-to) (no `unsafe-eval`), copied unmodified from `node_modules` by `scripts/heic-converter-plugin.mjs` during `vite build`. It is not bundled into the page.
+- If it is not published next to the page, HEIC photos fail with the message "We couldn't convert that iPhone photo. Share it as a JPG ...". Other photos are unaffected.
+- Licence and attribution: `THIRD_PARTY_NOTICES.md`.
 
 ## Import a recipe
 

@@ -5,7 +5,8 @@ import { useStore } from '../../data/StoreProvider';
 import { COURSES, DIETARY } from '../../domain/tags';
 import type { Course, DietaryTag, Me, Recipe } from '../../domain/types';
 import type { ImportedBy, ImportedRecipe } from '../../lib/import';
-import { ImageTooLargeError, resizeImage } from '../../lib/image/resize';
+import { PHOTO_ACCEPT, PHOTO_HINT, PHOTO_PREPARING, photoErrorMessage } from '../../lib/image/messages';
+import { preparePhoto } from '../../lib/image/prepare';
 import {
   blankForm,
   clearStoredDraft,
@@ -92,6 +93,10 @@ function PhotoField(props: {
 }): JSX.Element {
   const { slot } = props;
   const altId = `f-alt-${props.id}`;
+  const fileId = `f-file-${props.id}`;
+  const hintId = `${fileId}-hint`;
+  const errId = `${fileId}-err`;
+  const working = slot.status === 'uploading' || slot.status === 'preparing';
   const onChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = '';
@@ -100,21 +105,25 @@ function PhotoField(props: {
   return (
     <div className="cp-photo">
       <input
-        id={`f-file-${props.id}`}
+        id={fileId}
         className="sr-only"
         type="file"
-        accept="image/*"
+        accept={PHOTO_ACCEPT}
         capture={props.capture ? 'environment' : undefined}
         onChange={onChange}
-        disabled={slot.status === 'uploading' || !!slot.photo}
+        disabled={working || !!slot.photo}
+        aria-describedby={slot.status === 'error' ? `${hintId} ${errId}` : hintId}
+        aria-invalid={slot.status === 'error' ? true : undefined}
       />
       {!slot.photo && (
-        <label className="btn btn-prop cp-filebtn" htmlFor={`f-file-${props.id}`}>
-          {slot.status === 'uploading' ? 'Uploading…' : props.label}
+        <label className="btn btn-prop cp-filebtn" htmlFor={fileId}>
+          {slot.status === 'preparing' ? 'Preparing…' : slot.status === 'uploading' ? 'Uploading…' : props.label}
         </label>
       )}
+      {!slot.photo && <p className="cp-hint" id={hintId}>{PHOTO_HINT}</p>}
+      {slot.status === 'preparing' && <p className="cp-note" role="status">{PHOTO_PREPARING}</p>}
       {slot.status === 'uploading' && <p className="cp-note" role="status">Uploading photo…</p>}
-      {slot.status === 'error' && <p className="cp-err" role="alert">{slot.error}</p>}
+      {slot.status === 'error' && <p className="cp-err" id={errId} role="alert">{slot.error}</p>}
       {slot.photo && (
         <div className="cp-snaprow">
           <figure className="snap cp-snap">
@@ -314,17 +323,14 @@ export default function ComposePage(props: { id?: string }): JSX.Element {
     });
 
   const upload = async (t: SlotTarget, file: File, defaultAlt: string) => {
-    updateSlot(t, (s) => ({ ...s, status: 'uploading', error: undefined }));
+    updateSlot(t, (s) => ({ ...s, status: 'preparing', error: undefined }));
     try {
-      const small = await resizeImage(file);
+      const small = await preparePhoto(file);
+      updateSlot(t, (s) => ({ ...s, status: 'uploading' }));
       const photo = await store.uploadPhoto(small, defaultAlt);
       updateSlot(t, (s) => ({ photo, alt: s.alt || defaultAlt, status: 'idle' }));
     } catch (err) {
-      const message =
-        err instanceof ImageTooLargeError
-          ? 'That photo is larger than 20 MB. Choose a smaller one.'
-          : 'The photo did not upload. Try again.';
-      updateSlot(t, (s) => ({ ...s, status: 'error', error: message }));
+      updateSlot(t, (s) => ({ ...s, status: 'error', error: photoErrorMessage(err) }));
     }
   };
 

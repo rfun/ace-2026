@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { PhotoPermissionError, PhotoUploadError } from '../../lib/image/errors';
 import type { RecipeDraft } from '../../domain/types';
 import { createArtifactStore } from './artifactStore';
 import { createFakeRuntime } from './fakeRuntime';
@@ -227,8 +228,21 @@ describe('uploadPhoto', () => {
     const photo = await createArtifactStore(createFakeRuntime()).uploadPhoto(new Blob(['x']), 'a dish');
     expect(photo).toEqual({ assetId: 'asset-1', url: '/_blob/asset-1', alt: 'a dish' });
   });
-  it('rejects uploads-unavailable when assets is null', async () => {
-    await expect(createArtifactStore(createFakeRuntime({ assets: false })).uploadPhoto(new Blob(['x']), 'a')).rejects.toThrow('uploads-unavailable');
+  it('rejects with PhotoPermissionError when assets is null (catches a no-permission viewer seeing the generic failure)', async () => {
+    const p = createArtifactStore(createFakeRuntime({ assets: false })).uploadPhoto(new Blob(['x']), 'a');
+    await expect(p).rejects.toBeInstanceOf(PhotoPermissionError);
+    await expect(p).rejects.toThrow('uploads-unavailable');
+  });
+  it('maps a runtime not_granted rejection to PhotoPermissionError (catches treating a refused capability as a network blip)', async () => {
+    const rt = createFakeRuntime({ uploadError: { code: 'not_granted', message: 'no' } });
+    await expect(createArtifactStore(rt).uploadPhoto(new Blob(['x']), 'a')).rejects.toBeInstanceOf(PhotoPermissionError);
+  });
+  it('maps any other upload rejection to PhotoUploadError, keeping the original error (catches telling people to ask for access on a network error)', async () => {
+    const boom = new Error('network down');
+    const err = await createArtifactStore(createFakeRuntime({ uploadError: boom })).uploadPhoto(new Blob(['x']), 'a').catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(PhotoUploadError);
+    expect(err).not.toBeInstanceOf(PhotoPermissionError);
+    expect((err as PhotoUploadError).detail).toBe(boom);
   });
 });
 

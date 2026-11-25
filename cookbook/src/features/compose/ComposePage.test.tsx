@@ -1,10 +1,11 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { StoreProvider } from '../../data/StoreProvider';
 import type { DataStore } from '../../data/store';
 import { createMockStore } from '../../data/mock/mockStore';
 import type { Me } from '../../domain/types';
 import ComposeScreen from './index';
+import { installSmallImageBackend, resetImageBackend } from '../../lib/image/testing';
 import { DRAFT_KEY } from './form';
 
 const ID = 'r-besan-ladoo'; // authored by u-jordan
@@ -50,7 +51,9 @@ const imageFile = (name = 'p.png', size?: number) => {
 const pickPhoto = (inputId: string, file: File) =>
   fireEvent.change(document.getElementById(inputId)!, { target: { files: [file] } });
 
+afterEach(() => resetImageBackend());
 beforeEach(() => {
+  installSmallImageBackend();
   window.location.hash = '#/compose';
   window.localStorage.clear();
   // vitest's jsdom createObjectURL rejects jsdom Files; the page only needs a url string.
@@ -314,7 +317,7 @@ describe('ComposePage photos', () => {
   it('uses image/* with capture on step photo inputs (catches a desktop-only picker on phones)', async () => {
     await ready(createMockStore({ me: author }));
     const input = document.getElementById('f-file-s-0')!;
-    expect(input).toHaveAttribute('accept', 'image/*');
+    expect(input).toHaveAttribute('accept', 'image/*,.heic,.heif');
     expect(input).toHaveAttribute('capture', 'environment');
   });
 
@@ -353,7 +356,7 @@ describe('ComposePage photos', () => {
     const up = vi.spyOn(store, 'uploadPhoto');
     await ready(store);
     pickPhoto('f-file-main', imageFile('big.png', 21 * 1024 * 1024));
-    expect(await screen.findByText('That photo is larger than 20 MB. Choose a smaller one.')).toBeInTheDocument();
+    expect(await screen.findByText('That photo is over 20 MB. Choose a smaller one.')).toBeInTheDocument();
     expect(up).not.toHaveBeenCalled();
     expect(screen.queryByRole('button', { name: 'Remove photo' })).toBeNull();
   });
@@ -375,7 +378,7 @@ describe('ComposePage photos', () => {
     vi.spyOn(store, 'uploadPhoto').mockRejectedValueOnce(new Error('net'));
     await ready(store);
     pickPhoto('f-file-main', imageFile());
-    expect(await screen.findByText('The photo did not upload. Try again.')).toBeInTheDocument();
+    expect(await screen.findByText("The photo didn't upload. Check your connection and try again.")).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Save recipe' })).toBeEnabled();
     pickPhoto('f-file-main', imageFile());
     fireEvent.click(await screen.findByRole('button', { name: 'Remove photo' }));

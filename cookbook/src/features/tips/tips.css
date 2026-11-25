@@ -1,6 +1,7 @@
 .tips-composer { background: var(--card); color: var(--ink); padding: 8px 4px 16px; max-width: 100%; box-sizing: border-box; }
 .tips-area { display: block; width: 100%; box-sizing: border-box; font: 500 22px/32px var(--font-hand); background: repeating-linear-gradient(transparent 0 calc(var(--rule-gap) - 1px), var(--rule) calc(var(--rule-gap) - 1px) var(--rule-gap)); border: 0; border-bottom: 2px solid var(--rule); padding: 0 6px; resize: vertical; min-height: 160px; }
 .tips-count { font: 400 14px/24px var(--font-typed); color: var(--ink-soft); margin: 2px 0 0; text-align: right; }
+.tips-hint { font: 400 14px/22px var(--font-typed); color: var(--ink-soft); margin: 2px 0 0; }
 .tips-error { font: 700 15px/22px var(--font-typed); color: var(--margin-ink); margin: 4px 0; }
 .tips-note { font: 400 17px/26px var(--font-read); margin: 0 0 8px; }
 .tips-photo { margin-top: 8px; }
@@ -12,6 +13,6 @@
 .tips-confirm .tips-note { margin: 0; }
 @media (max-width: 600px) {
   .tips-note, .tips-alt, .tips-file { font-size: 17px; }
-  .tips-count, .tips-error { font-size: 17px; }
+  .tips-count, .tips-error, .tips-hint { font-size: 17px; }
   .tips-composer .btn { padding: 12px 14px; }
 }
