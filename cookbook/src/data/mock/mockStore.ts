@@ -1,12 +1,16 @@
 import type { DataStore } from '../store';
-import type { Me, Person, Photo, Recipe, RecipeDraft, Tip, UserId } from '../../domain/types';
-import { SAMPLE_PEOPLE, SAMPLE_RECIPES, SAMPLE_TIPS } from './samples';
+import { applyShelfState, computeStats } from '../../domain/stats';
+import type { MadeNote, Me, Person, Photo, Recipe, RecipeDraft, Shelf, ShelfState, Tip, UserId } from '../../domain/types';
+import { SAMPLE_MADE, SAMPLE_PEOPLE, SAMPLE_RECIPES, SAMPLE_SHELVES, SAMPLE_TIPS } from './samples';
 
 export interface MockStoreOptions {
   me?: Me;
   people?: Person[];
   recipes?: Recipe[];
   tips?: Tip[];
+  made?: MadeNote[];
+  /** Every person's shelf, keyed by person id. */
+  shelves?: Record<UserId, Shelf>;
   persist?: boolean;
 }
 
@@ -15,6 +19,8 @@ const STORAGE_KEY = 'ace-culture-cookbook:mock-store:v1';
 interface State {
   recipes: Recipe[];
   tips: Tip[];
+  made: MadeNote[];
+  shelves: Record<UserId, Shelf>;
   counter: number;
 }
 
@@ -51,8 +57,14 @@ export function createMockStore(opts: MockStoreOptions = {}): DataStore {
   const state: State = persisted ?? {
     recipes: structuredClone(opts.recipes ?? SAMPLE_RECIPES),
     tips: structuredClone(opts.tips ?? SAMPLE_TIPS),
+    made: structuredClone(opts.made ?? SAMPLE_MADE),
+    shelves: structuredClone(opts.shelves ?? SAMPLE_SHELVES),
     counter: 0,
   };
+  // A state saved before made notes and shelves existed has neither: start those empty.
+  state.made ??= [];
+  state.shelves ??= {};
+  const shelfOf = (id: UserId): Shelf => state.shelves[id] ?? { want: [], made: [] };
   const listeners = new Set<() => void>();
   let photoCounter = 0;
 
@@ -135,9 +147,48 @@ export function createMockStore(opts: MockStoreOptions = {}): DataStore {
       return structuredClone(created);
     },
 
-    async setHidden(kind: 'recipe' | 'tip', id: string, hidden: boolean) {
+    async listMade(recipeId: string) {
+      return structuredClone(
+        state.made
+          .filter((n) => n.recipeId === recipeId && (me.canModerate || !n.hidden))
+          .sort((a, b) => a.createdAt - b.createdAt),
+      );
+    },
+
+    async addMade(recipeId: string, note: { text: string; photo?: Photo }) {
+      const text = note.text.trim();
+      if (text.length < 1 || text.length > 600) throw new Error('invalid-made');
+      const created: MadeNote = {
+        id: nextId('m'),
+        recipeId,
+        authorId: me.id,
+        text,
+        ...(note.photo ? { photo: note.photo } : {}),
+        createdAt: Date.now(),
+      };
+      state.made.push(created);
+      state.shelves[me.id] = applyShelfState(shelfOf(me.id), recipeId, 'made');
+      commit();
+      return structuredClone(created);
+    },
+
+    async myShelf() {
+      return structuredClone(shelfOf(me.id));
+    },
+
+    async setShelf(recipeId: string, next: ShelfState) {
+      state.shelves[me.id] = applyShelfState(shelfOf(me.id), recipeId, next);
+      commit();
+      return structuredClone(state.shelves[me.id]);
+    },
+
+    async stats() {
+      return computeStats(state.made, state.shelves);
+    },
+
+    async setHidden(kind: 'recipe' | 'tip' | 'made', id: string, hidden: boolean) {
       if (!me.canModerate) throw new Error('forbidden');
-      const list: { id: string; hidden?: boolean }[] = kind === 'recipe' ? state.recipes : state.tips;
+      const list: { id: string; hidden?: boolean }[] = kind === 'recipe' ? state.recipes : kind === 'tip' ? state.tips : state.made;
       const item = list.find((x) => x.id === id);
       if (!item) throw new Error('not found');
       item.hidden = hidden;
