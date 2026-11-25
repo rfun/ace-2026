@@ -4,6 +4,7 @@ import { formatHash, navigate } from '../../app/router';
 import { useStore } from '../../data/StoreProvider';
 import { COURSES, DIETARY, stockClass } from '../../domain/tags';
 import type { Me, Person, Photo, Recipe, Tip, UserId } from '../../domain/types';
+import { setAuthorHandoff } from '../browse/authorHandoff';
 import { TipComposer } from '../tips';
 import { penFor } from './pens';
 import ServingsControl from './ServingsControl';
@@ -230,7 +231,19 @@ export default function RecipePage(props: { id: string; onAddTip?: () => void })
       <article className="rc-card">
         <header className="rc-head">
           <h1 className="rc-title">{recipe.title}</h1>
-          <p className="rc-by">From the kitchen of {authorName}</p>
+          <p className="rc-by">
+            <button
+              type="button"
+              className="rc-by-btn"
+              title={`See all recipes from ${authorName}`}
+              onClick={() => {
+                setAuthorHandoff(recipe.authorId);
+                navigate({ name: 'browse' });
+              }}
+            >
+              From the kitchen of {authorName}
+            </button>
+          </p>
           {teamCity && <p className="rc-line">{teamCity}</p>}
           <p className="rc-meta">{meta.join(' · ')}</p>
           <ul className="rc-stamps" aria-label="Dietary notes">

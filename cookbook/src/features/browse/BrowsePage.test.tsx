@@ -5,6 +5,7 @@ import type { DataStore } from '../../data/store';
 import { createMockStore } from '../../data/mock/mockStore';
 import { SAMPLE_RECIPES } from '../../data/mock/samples';
 import type { Me } from '../../domain/types';
+import { setAuthorHandoff } from './authorHandoff';
 import BrowseScreen from './index';
 
 const writer: Me = { id: 'u-you', canWrite: true, canModerate: false };
@@ -28,14 +29,14 @@ describe('BrowsePage', () => {
     await screen.findByText('Besan Ladoo');
     const titles = SAMPLE_RECIPES.map((x) => x.title);
     for (const t of titles) expect(screen.getByText(t)).toBeInTheDocument();
-    const shown = screen.getAllByRole('link').map((a) => a.querySelector('.bw-title')?.textContent);
+    const shown = screen.getAllByRole('link').map((a) => a.textContent);
     // createdAt: ladoo oldest, congee next, empanadas newest
     expect(shown).toEqual(['Sample Baked Empanadas', 'Sample Ginger Congee', 'Besan Ladoo']);
   });
 
   it('shows author, origin, course and dietary label on a card (catches stamps without text)', async () => {
     mount(createMockStore({ me: writer }));
-    const card = (await screen.findByText('Besan Ladoo')).closest('a')!;
+    const card = (await screen.findByText('Besan Ladoo')).closest<HTMLElement>('.bw-card')!;
     expect(within(card).getByText('From the kitchen of Jordan Example')).toBeInTheDocument();
     expect(card).toHaveTextContent('Punjab, India · Sweets');
     expect(card).toHaveTextContent('Gluten-free');
@@ -189,5 +190,52 @@ describe('BrowsePage', () => {
       await store.saveRecipe({ ...SAMPLE_RECIPES[0], id: undefined, title: 'Freshly Added Dish' });
     });
     expect(await screen.findByText('Freshly Added Dish')).toBeInTheDocument();
+  });
+
+  // Catches: a nested link-in-link or an author control that cannot take focus on its own.
+  it('card by-line is a button outside the recipe link, and the card is still one link (catches nested interactive elements)', async () => {
+    mount(createMockStore({ me: writer }));
+    await screen.findByText('Besan Ladoo');
+    const card = screen.getByText('Besan Ladoo').closest('.bw-card') as HTMLElement;
+    const by = within(card).getByRole('button', { name: 'From the kitchen of Jordan Example' });
+    expect(by.closest('a')).toBeNull();
+    expect(within(card).getAllByRole('link')).toHaveLength(1);
+  });
+
+  // Catches: author click not setting the filter, filter by name text, chip missing/unremovable, count not updated.
+  it('clicking a card by-line filters to that person, shows a removable chip and counts as a filter', async () => {
+    mount(createMockStore({ me: writer }));
+    await screen.findByText('Besan Ladoo');
+    fireEvent.click(screen.getByRole('button', { name: 'From the kitchen of Jordan Example' }));
+    expect(screen.getAllByRole('link')).toHaveLength(1);
+    expect(screen.getByRole('button', { name: 'Filters (1)' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Remove filter From Jordan Example\u2019s kitchen' }));
+    expect(screen.getAllByRole('link')).toHaveLength(3);
+    expect(screen.getByRole('button', { name: 'Filters (0)' })).toBeInTheDocument();
+  });
+
+  // Catches: author handoff ignored by browse, or left set so it re-applies on the next visit.
+  it('opens already filtered to the person handed off from the recipe page, once', async () => {
+    setAuthorHandoff('u-jordan');
+    const first = mount(createMockStore({ me: writer }));
+    await screen.findByText('Besan Ladoo');
+    expect(screen.getAllByRole('link')).toHaveLength(1);
+    expect(screen.getByRole('button', { name: /^Remove filter From Jordan Example/ })).toBeInTheDocument();
+    first.unmount();
+    mount(createMockStore({ me: writer }));
+    await screen.findByText('Besan Ladoo');
+    expect(screen.getAllByRole('link')).toHaveLength(3);
+  });
+
+  // Catches: search not reaching ingredients/people through the real component, and a placeholder that hides the new scope.
+  it('search box hints at the new scope and finds by ingredient and by person', async () => {
+    mount(createMockStore({ me: writer }));
+    await screen.findByText('Besan Ladoo');
+    const box = screen.getByLabelText('Search recipes');
+    expect(box).toHaveAttribute('placeholder', 'Search recipes, people, ingredients\u2026');
+    fireEvent.change(box, { target: { value: 'pistachios' } }); // an ingredient of Besan Ladoo only
+    expect(screen.getAllByRole('link').map((a) => a.textContent)).toEqual(['Besan Ladoo']);
+    fireEvent.change(box, { target: { value: 'jordan' } });
+    expect(screen.getAllByRole('link').map((a) => a.textContent)).toEqual(['Besan Ladoo']);
   });
 });

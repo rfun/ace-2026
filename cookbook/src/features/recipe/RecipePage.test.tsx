@@ -5,6 +5,7 @@ import type { DataStore } from '../../data/store';
 import { createMockStore } from '../../data/mock/mockStore';
 import { SAMPLE_RECIPES, SAMPLE_TIPS } from '../../data/mock/samples';
 import type { Me } from '../../domain/types';
+import { clearAuthorHandoff, peekAuthorHandoff } from '../browse/authorHandoff';
 import RecipeScreen from './index';
 
 const ID = 'r-besan-ladoo';
@@ -259,5 +260,16 @@ describe('load failures and sequencing', () => {
     await act(async () => { gates[0](); }); // stale resolves last
     expect(screen.getByRole('heading', { level: 1, name: 'NEW TITLE' })).toBeInTheDocument();
     expect(screen.queryByText('OLD TITLE')).toBeNull();
+  });
+
+  // Catches: by-line not offering the author's recipes, or handing browse a name instead of the id.
+  it('by-line button hands the author id to browse and navigates there', async () => {
+    setup(reader);
+    await screen.findByRole('heading', { level: 1 });
+    window.location.hash = '#/recipe/' + ID;
+    fireEvent.click(screen.getByRole('button', { name: 'From the kitchen of Jordan Example' }));
+    expect(peekAuthorHandoff()).toBe('u-jordan');
+    expect(window.location.hash).toBe('#/');
+    clearAuthorHandoff();
   });
 });
