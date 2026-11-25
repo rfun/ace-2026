@@ -1,3 +1,4 @@
+import { normalizeTags } from '../../domain/types';
 import type { Course, DietaryTag, Photo, Recipe, RecipeDraft } from '../../domain/types';
 
 /** One photo slot (main photo or a step photo) and where it is in its upload. */
@@ -18,6 +19,8 @@ export interface FormState {
   occasions: string;
   course: Course | '';
   dietary: DietaryTag[];
+  /** Keywords already added as chips (stored form). The text still being typed lives in the field itself. */
+  tags: string[];
   team: string;
   city: string;
   serves: string;
@@ -40,7 +43,7 @@ export function newKey(prefix: string): string {
 
 export function blankForm(): FormState {
   return {
-    title: '', story: '', origin: '', occasions: '', course: '', dietary: [], team: '', city: '', serves: '', makes: '', minutes: '',
+    title: '', story: '', origin: '', occasions: '', course: '', dietary: [], tags: [], team: '', city: '', serves: '', makes: '', minutes: '',
     ingredients: [{ key: newKey('i'), quantity: '', item: '' }],
     steps: [{ key: newKey('s'), text: '', slot: emptySlot() }],
     main: emptySlot(),
@@ -59,6 +62,7 @@ export function formFromRecipe(r: Recipe): FormState {
     occasions: r.occasions.join(', '),
     course: r.course,
     dietary: [...r.dietary],
+    tags: [...(r.tags ?? [])],
     team: r.team ?? '',
     city: r.city ?? '',
     serves: r.serves === undefined ? '' : String(r.serves),
@@ -130,6 +134,8 @@ export function toDraft(f: FormState, loaded?: Recipe): RecipeDraft {
         return photo ? { id: s.key, text: s.text.trim(), photo } : { id: s.key, text: s.text.trim() };
       }),
   };
+  const tags = normalizeTags(f.tags);
+  if (tags.length > 0) draft.tags = tags;
   if (!blank(f.team)) draft.team = f.team.trim();
   if (!blank(f.city)) draft.city = f.city.trim();
   draft.serves = Number(f.serves.trim());
@@ -164,6 +170,7 @@ export function loadStoredDraft(): FormState | null {
     return {
       ...base,
       ...d,
+      tags: Array.isArray(d.tags) ? d.tags.filter((t) => typeof t === 'string') : [],
       ingredients: d.ingredients?.length ? d.ingredients : base.ingredients,
       steps: d.steps?.length ? d.steps.map((s) => ({ key: s.key, text: s.text, slot: emptySlot() })) : base.steps,
       main: emptySlot(),
@@ -178,6 +185,7 @@ export function isBlankForm(f: FormState): boolean {
     [f.title, f.story, f.origin, f.occasions, f.team, f.city, f.serves, f.makes, f.minutes].every(blank) &&
     f.course === '' &&
     f.dietary.length === 0 &&
+    f.tags.length === 0 &&
     f.ingredients.every((i) => blank(i.quantity) && blank(i.item)) &&
     f.steps.every((s) => blank(s.text))
   );

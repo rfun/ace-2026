@@ -91,3 +91,19 @@ describe('normalizeImported: serves', () => {
     expect(normalizeImported({ serves: input }).serves).toBe(expected);
   });
 });
+
+describe('normalizeImported tags', () => {
+  // Catches: Claude returning more than 5 keywords filling the field with noise.
+  it('keeps at most 5, normalised, and drops non-strings and duplicates', () => {
+    const r = normalizeImported({ tags: ['Noodles', 'noodles', 'Soup', 3, 'a', 'b', 'c', 'd', 'e'] });
+    expect(r.tags).toEqual(['noodles', 'soup', 'a', 'b', 'c']);
+  });
+  // Catches: an empty or non-array tags key surviving as tags: [].
+  it.each([[[]], ['soup'], [[1, '  ']], [null]])('omits tags for %j', (v) => {
+    expect(normalizeImported({ tags: v })).toEqual({});
+  });
+  // Catches: a 25-character suggestion being accepted past the field limit.
+  it('drops over-long suggestions', () => {
+    expect(normalizeImported({ tags: ['x'.repeat(25), 'ok'] }).tags).toEqual(['ok']);
+  });
+});

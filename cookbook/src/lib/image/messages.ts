@@ -1,7 +1,7 @@
 /** One message set for every place a photo can be picked (recipe photo, step photos, tip photo, import photo). */
 
 /** Shown under every photo control, before anything goes wrong. */
-export const PHOTO_HINT = 'JPG, PNG, WebP or HEIC · up to 20 MB';
+export const PHOTO_HINT = 'JPG, PNG, WebP or HEIC · up to 20\u00a0MB';
 /** Shown while the photo is being converted or resized. */
 export const PHOTO_PREPARING = 'Preparing photo…';
 /** The picker filter: every image, plus the HEIC extensions some systems do not map to an image type. */

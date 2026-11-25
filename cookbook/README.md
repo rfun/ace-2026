@@ -35,6 +35,12 @@ iPhone photos are HEIC. Safari reads them natively; Chrome and Edge on Windows d
 
 On the new-recipe screen, "Import a recipe" pre-fills the form from pasted text or a photo of a recipe card. It never saves. Parsers live in `src/lib/import/`: a local reader (headings, lists, JSON-LD) that always works, and Claude via the `sample` capability (manifest `sample: { images: true }`, see `CAPABILITIES`) when running in claude.ai. No URL fetching: copy the page text and paste it.
 
+## Search, filters and keywords
+
+The search box on the browse screen matches a recipe's title, origin, occasions, keywords, story, the contributor's display name, ingredient names (not amounts) and steps. It ignores case and accents, and every word typed must match somewhere. Beside it the filter panel groups Dietary, Origin, Occasion, Keywords and Contributor: OR inside a group, AND across groups (dietary needs every selected tag), each choice counted in "Filters (n)". Clicking "From the kitchen of X" on a card or recipe page opens browse filtered to that contributor (by id, so two people with the same name stay apart) with a removable "From X's kitchen" chip. The recipe page hands that choice to browse through `src/features/browse/authorHandoff.ts` (one-shot, in memory).
+
+**Keywords** are free-form tags the author adds ("noodles", "soup"). In the data `tags` is optional (`Recipe.tags?: string[]`) so older recipes load. They are normalised on save and on read (`normalizeTags` in `src/domain/types.ts`): trimmed, lower-cased, inner spaces collapsed, empties and duplicates dropped, at most 10 per recipe and 1 to 24 characters each. On the compose screen, type a word and press Enter or comma to add a chip, Backspace in the empty box removes the last one, and pasting "noodles, soup" adds both. The recipe card shows them as small text chips; clicking one opens browse filtered to that keyword (`src/features/browse/tagHandoff.ts`). When importing with Claude, up to 5 suggested keywords fill only an empty Keywords field; the local text reader suggests none.
+
 ## Serves and scaling
 
 Every new or edited recipe needs a **Serves** number (a whole number from 1 to 100, the portions the written quantities make). "Makes" stays an optional free-text note ("24 ladoos"). In the data, `serves` is optional so older recipes still load; they simply show no scaler.
