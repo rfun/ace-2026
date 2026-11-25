@@ -119,7 +119,7 @@ describe('shelf buttons', () => {
 });
 
 describe('I made this section', () => {
-  it('lists notes with author and date, before the tips section (catches a missing note, or wrong order)', async () => {
+  it('lists notes with author and date, after the tips section, on its own card (catches a missing note, or wrong order)', async () => {
     mount(createMockStore({ me: writer }), LADOO);
     const heading = await screen.findByRole('heading', { name: 'I made this' });
     expect(screen.getByText(SAMPLE_MADE[0].text)).toBeInTheDocument();
@@ -127,7 +127,7 @@ describe('I made this section', () => {
     expect(within(section).getByText('Jordan Example')).toBeInTheDocument();
     expect(section.querySelector('time')).toHaveAttribute('datetime', new Date(SAMPLE_MADE[0].createdAt).toISOString());
     const tips = screen.getByRole('heading', { name: 'Tips from the tin' });
-    expect(heading.compareDocumentPosition(tips) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(tips.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('shows the empty state when nobody has posted (catches a blank section)', async () => {

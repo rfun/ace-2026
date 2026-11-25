@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { MouseEvent } from 'react';
+import type { MouseEvent, ReactNode } from 'react';
 import { formatHash, navigate } from '../../app/router';
 import { useStore } from '../../data/StoreProvider';
 import { COURSES, DIETARY, stockClass } from '../../domain/tags';
@@ -44,7 +44,7 @@ function BackTab(): JSX.Element {
   );
 }
 
-function Shell(props: { tabs: JSX.Element; children: JSX.Element; busy?: boolean; stock?: string }): JSX.Element {
+function Shell(props: { tabs: JSX.Element; children: ReactNode; busy?: boolean; stock?: string }): JSX.Element {
   return (
     <div className={`rc-ground ${props.stock ?? ''}`} aria-busy={props.busy ? true : undefined}>
       <nav className="rc-tabs on-tin" aria-label="Recipe location">
@@ -348,8 +348,6 @@ export default function RecipePage(props: { id: string; onAddTip?: () => void })
                 ))}
               </ol>
             </section>
-
-            <MadeSection recipeId={recipe.id} notes={made} people={people} me={me} onPosted={onMadePosted} />
           </div>
 
           <section aria-labelledby="rc-h-tips" className="rc-margin">
@@ -394,6 +392,7 @@ export default function RecipePage(props: { id: string; onAddTip?: () => void })
           </section>
         </div>
       </article>
+      <MadeSection recipeId={recipe.id} notes={made} people={people} me={me} onPosted={onMadePosted} />
     </Shell>
   );
 }
