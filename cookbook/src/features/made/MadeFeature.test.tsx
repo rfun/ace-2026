@@ -148,6 +148,48 @@ describe('I made this section', () => {
     expect((await area()).value).toBe(''); // composer cleared
   });
 
+  it('posting flips the buttons and count at once, without waiting for the store refresh (catches a missing optimistic update)', async () => {
+    const store = createMockStore({ me: writer });
+    // Hold the refresh back: the page only knows what the post itself told it.
+    vi.spyOn(store, 'subscribe').mockImplementation(() => () => undefined);
+    mount(store, LADOO);
+    expect(await screen.findByText('Made by 2')).toBeInTheDocument();
+    expect(made()).toHaveAttribute('aria-pressed', 'false');
+    fireEvent.change(await area(), { target: { value: 'No refresh needed.' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Post it' }));
+    expect(await screen.findByText('No refresh needed.')).toBeInTheDocument();
+    expect(made()).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByText('Made by 3')).toBeInTheDocument();
+  });
+
+  it('shows a note photo with its description (catches dropped note photos)', async () => {
+    const photo = { assetId: 'a1', url: 'blob:note-photo', alt: 'Golden ladoo on a plate' };
+    mount(createMockStore({ me: writer, made: [{ ...SAMPLE_MADE[0], photo }] }), LADOO);
+    const img = await screen.findByAltText('Golden ladoo on a plate');
+    expect(img).toHaveAttribute('src', 'blob:note-photo');
+    expect(img.closest('li')).toHaveTextContent(SAMPLE_MADE[0].text);
+  });
+
+  it('posting with a photo uploads it and saves it on the note (catches a photo lost between upload and post)', async () => {
+    installSmallImageBackend();
+    URL.createObjectURL = () => 'blob:fake';
+    const store = createMockStore({ me: writer });
+    const upload = vi.spyOn(store, 'uploadPhoto');
+    const add = vi.spyOn(store, 'addMade');
+    mount(store, CONGEE);
+    fireEvent.change(await area(), { target: { value: 'with a photo' } });
+    fireEvent.change(screen.getByLabelText('Photo (optional)'), { target: { files: [new File(['img'], 'a.jpg', { type: 'image/jpeg' })] } });
+    fireEvent.change(await screen.findByLabelText('Describe the photo'), { target: { value: 'My congee bowl' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Post it' }));
+    const img = await screen.findByAltText('My congee bowl');
+    expect(upload).toHaveBeenCalledTimes(1);
+    expect(upload.mock.calls[0][1]).toBe('My congee bowl');
+    expect(add.mock.calls[0][1].photo).toMatchObject({ alt: 'My congee bowl' });
+    expect(img.closest('li')).toHaveTextContent('with a photo');
+    expect((await store.listMade(CONGEE))[0].photo?.alt).toBe('My congee bowl');
+    resetImageBackend();
+  });
+
   it('uses the "I made this" placeholder (catches the wrong prompt)', async () => {
     mount(createMockStore({ me: writer }), CONGEE);
     expect(await area()).toHaveAttribute('placeholder', 'I made this — here’s what I found…');
