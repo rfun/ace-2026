@@ -159,6 +159,13 @@ describe('I made this card', () => {
     expect(card.contains(document.getElementById('made-composer'))).toBe(true);
   });
 
+  // Catches: a broken or missing aria-labelledby on the card (a section is only a region when it has a name).
+  it('is a named region outside the recipe card', async () => {
+    mount({ id: 'u-you', canWrite: true, canModerate: false });
+    const region = await screen.findByRole('region', { name: /i made this/i });
+    expect(document.querySelector('article.rc-card')!.contains(region)).toBe(false);
+  });
+
   // Catches: the new card keeping the recipe sheet's ruled background instead of plain card paper.
   it('uses plain card paper, not the ruled sheet', () => {
     const made: string = readFileSync('src/features/made/made.css', 'utf8');
