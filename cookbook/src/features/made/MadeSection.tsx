@@ -20,11 +20,11 @@ function dayOf(ms: number): string {
   return new Date(ms).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
-/** "I made this": what people found when they cooked it. Separate from the tips in the margin. */
+/** "I made this": what people found when they cooked it. Its own index card below the recipe card; separate from the tips in the margin. */
 export function MadeSection({ recipeId, notes, people, me, onPosted }: MadeSectionProps): JSX.Element {
   const store = useStore();
   return (
-    <section aria-labelledby="rc-h-made" className="rc-sec mk-sec">
+    <section aria-labelledby="rc-h-made" className="mk-sec">
       <h2 id="rc-h-made" className="label">
         I made this
       </h2>

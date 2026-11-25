@@ -143,3 +143,34 @@ describe('tip composer width', () => {
     expect(css).toMatch(/@media \(min-width: 1024px\) \{\s*\.rc-composing \.rc-margin \{ grid-column: 1 \/ -1;/);
   });
 });
+
+describe('I made this card', () => {
+  // Catches: MadeSection rendered back inside the recipe article (the old placement), or Tips moving out of it.
+  it('is a separate card after the recipe card, while Tips stay inside the recipe card', async () => {
+    mount({ id: 'u-you', canWrite: true, canModerate: false });
+    const made = await screen.findByRole('heading', { name: 'I made this' });
+    const tips = screen.getByRole('heading', { name: 'Tips from the tin' });
+    const article = document.querySelector('article.rc-card')!;
+    expect(article.contains(made)).toBe(false);
+    expect(article.contains(tips)).toBe(true);
+    expect(article.compareDocumentPosition(made) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    const card = made.closest('section')!;
+    expect(card.parentElement).toBe(article.parentElement);
+    expect(card.contains(document.getElementById('made-composer'))).toBe(true);
+  });
+
+  // Catches: a broken or missing aria-labelledby on the card (a section is only a region when it has a name).
+  it('is a named region outside the recipe card', async () => {
+    mount({ id: 'u-you', canWrite: true, canModerate: false });
+    const region = await screen.findByRole('region', { name: /i made this/i });
+    expect(document.querySelector('article.rc-card')!.contains(region)).toBe(false);
+  });
+
+  // Catches: the new card keeping the recipe sheet's ruled background instead of plain card paper.
+  it('uses plain card paper, not the ruled sheet', () => {
+    const made: string = readFileSync('src/features/made/made.css', 'utf8');
+    const rule = made.match(/^\.mk-sec \{[^}]*\}/m)![0];
+    expect(rule).toContain('var(--card)');
+    expect(rule).not.toContain('repeating-linear-gradient');
+  });
+});

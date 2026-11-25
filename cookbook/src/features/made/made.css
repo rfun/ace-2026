@@ -9,8 +9,9 @@
 .mk-shelf .mk-count { font: 700 15px/24px var(--font-typed); color: var(--ink-soft); margin: 4px 0 0; }
 .mk-shelf .mk-error { font: 700 15px/24px var(--font-typed); color: var(--margin-ink); margin: 4px 0 0; }
 
-/* The notes live in the ruled body, so every block is a whole number of rule gaps. */
-.rc-sec.mk-sec { padding-top: var(--rule-gap); }
+/* "I made this" is its own plain index card under the recipe card: same width, a gap between, soft shadow, no ruled sheet or margin line. */
+.mk-sec { box-sizing: border-box; margin: 32px 0 0; padding: 24px 30px 8px; background: var(--card); border-radius: var(--radius-card); box-shadow: var(--shadow-card); color: var(--ink); font: 400 17px/var(--rule-gap) var(--font-read); }
+.mk-sec .label { margin-top: 0; }
 .mk-sec .mk-empty { margin: 0 0 var(--rule-gap); color: var(--ink-soft); }
 .mk-sec .mk-list { list-style: none; margin: 0 0 var(--rule-gap); padding: 0; }
 .mk-sec .mk-note { margin: 0; padding: 0; }
@@ -23,7 +24,7 @@
 .mk-sec .mk-hide { position: relative; display: flex; height: var(--rule-gap); min-height: var(--rule-gap); padding-top: 0; padding-bottom: 0; }
 .mk-sec .mk-hide::after { content: ""; position: absolute; left: 0; right: 0; top: -6px; bottom: -6px; }
 
-.mk-sec .mk-composer { margin: 0 0 var(--rule-gap); padding: 0; }
+.mk-sec .mk-composer { margin: 0 0 var(--rule-gap); padding: var(--rule-gap) 0 0; border-top: 2px solid var(--rule); }
 .mk-sec .mk-area { display: block; width: 100%; box-sizing: border-box; font: 500 22px/var(--rule-gap) var(--font-hand); color: var(--ink); background: transparent; border: 0; border-bottom: 2px solid var(--rule); padding: 0 6px; resize: vertical; height: calc(var(--rule-gap) * 5); min-height: calc(var(--rule-gap) * 5); }
 .mk-sec .mk-area:focus-visible { outline: 3px solid var(--stamp-violet); outline-offset: 2px; box-shadow: none; }
 .mk-sec .mk-hint { font: 400 14px/var(--rule-gap) var(--font-typed); color: var(--ink-soft); margin: 0; }
@@ -33,6 +34,9 @@
 .mk-sec .mk-preview { display: block; max-width: min(100%, 240px); max-height: 128px; background: var(--paper-white); border: 6px solid var(--paper-white); box-shadow: var(--shadow-snap); transform: rotate(-1deg); margin: 8px 0; }
 .mk-sec .mk-actions { display: flex; align-items: center; gap: 16px; margin-top: var(--rule-gap); }
 
+@media (max-width: 1023px) {
+  .mk-sec { padding: 20px 20px 8px; font-size: 18px; }
+}
 @media (max-width: 600px) {
   .mk-shelf .mk-toggle { flex: 1 1 0; min-height: 48px; font-size: 15px; padding: 10px 6px; white-space: nowrap; }
   .mk-shelf .mk-count, .mk-shelf .mk-error { font-size: 17px; }
