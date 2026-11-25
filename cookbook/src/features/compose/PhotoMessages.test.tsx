@@ -118,6 +118,19 @@ describe.each(SURFACES)('compose %s', (_name, inputId) => {
     expect(up).not.toHaveBeenCalled();
   });
 
+  it('converter output still HEIC: iPhone sentence and the store is never called (catches uploading an unconverted HEIC)', async () => {
+    const store = createMockStore({ me: author });
+    const up = vi.spyOn(store, 'uploadPhoto');
+    const bytes = Uint8Array.from([0, 0, 0, 0x18, 0x66, 0x74, 0x79, 0x70, 0x68, 0x65, 0x69, 0x63, 0, 0, 0, 0]);
+    const heic = new File([bytes], 'IMG_9.HEIC', { type: 'image/heic' });
+    setImageBackend({ decode: async (b) => (b === heic ? null : { width: 10, height: 10, source: {} }), encode: async () => new Blob(['j']) });
+    setHeicConverterLoader(async () => ({ convert: async () => new Blob([bytes], { type: 'image/jpeg' }) }));
+    await ready(store);
+    pick(inputId, heic);
+    expect(await screen.findByText(HEIC_FAILED)).toBeInTheDocument();
+    expect(up).not.toHaveBeenCalled();
+  });
+
   it('shows "Preparing photo…" while converting, then uploads the converted JPEG, not the HEIC (catches silent waiting and a raw HEIC upload)', async () => {
     const store = createMockStore({ me: author });
     const up = vi.spyOn(store, 'uploadPhoto');

@@ -183,6 +183,16 @@ describe('preparePhoto: HEIC', () => {
     await expect(preparePhoto(heicFile())).rejects.toBeInstanceOf(HeicConversionError);
   });
 
+  it('converter output that is STILL HEIC is rejected by the signature guard even when the browser could decode it (catches removing the guard: the fake decoder otherwise masks it)', async () => {
+    const original = heicFile();
+    const encode = vi.fn(async () => new Blob(['encoded-jpeg'], { type: 'image/jpeg' }));
+    // Only the original HEIC is undecodable; the converter's output decodes fine, so only the guard can stop it.
+    setImageBackend({ decode: async (b: Blob) => (b === original ? null : { width: 800, height: 600, source: {} }), encode });
+    setHeicConverterLoader(fakeConverter(new Blob([heicBytes()], { type: 'image/heic' })).load);
+    await expect(preparePhoto(original)).rejects.toBeInstanceOf(HeicConversionError);
+    expect(encode).not.toHaveBeenCalled();
+  });
+
   it('converted output the browser cannot decode: HeicConversionError (catches uploading an unreadable result)', async () => {
     const f = fakeBackend({ decodeAll: false });
     setImageBackend(f.backend);
