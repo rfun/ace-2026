@@ -6,6 +6,7 @@ import { COURSES, DIETARY, stockClass } from '../../domain/tags';
 import type { Course, DietaryTag, Me, Person, Recipe, UserId } from '../../domain/types';
 import { activeCount, applyFilters, distinctSorted, EMPTY_FILTERS } from './filters';
 import type { BrowseFilters } from './filters';
+import { clearAuthorHandoff, peekAuthorHandoff } from './authorHandoff';
 import './browse.css';
 
 type Loaded =
@@ -35,27 +36,33 @@ function Group(props: { title: string; children: JSX.Element[] }): JSX.Element |
   );
 }
 
-function Card(props: { recipe: Recipe; author: string }): JSX.Element {
-  const { recipe, author } = props;
+function Card(props: { recipe: Recipe; author: string; onAuthor: () => void }): JSX.Element {
+  const { recipe, author, onAuthor } = props;
   const go = (e: MouseEvent) => {
     // let modified clicks (new tab) fall through to the real href
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
     e.preventDefault();
     navigate({ name: 'recipe', id: recipe.id });
   };
+  // The title link is stretched over the whole card (see .bw-card-link::after) so the card is one link
+  // while the by-line stays a separate button: a button must not sit inside a link.
   return (
     <li className="bw-li">
-      <a className={`bw-card ${stockClass(recipe.course)}${recipe.mainPhoto ? ' bw-has-photo' : ''}`} href={formatHash({ name: 'recipe', id: recipe.id })} onClick={go}>
+      <div className={`bw-card ${stockClass(recipe.course)}${recipe.mainPhoto ? ' bw-has-photo' : ''}`}>
         {recipe.mainPhoto && (
           <figure className="snap bw-snap">
             <img src={recipe.mainPhoto.url} alt={recipe.mainPhoto.alt} loading="lazy" />
           </figure>
         )}
         <span className="bw-course" aria-hidden="true">{COURSES[recipe.course]?.label ?? recipe.course}</span>
-        <span className="bw-title">{recipe.title}</span>
-        <span className="bw-by">From the kitchen of {author}</span>
+        <span className="bw-title">
+          <a className="bw-card-link" href={formatHash({ name: 'recipe', id: recipe.id })} onClick={go}>{recipe.title}</a>
+        </span>
+        <button type="button" className="bw-by" title={`See all recipes from ${author}`} onClick={onAuthor}>
+          From the kitchen of {author}
+        </button>
         <span className="bw-meta">
-          {recipe.origin} · {COURSES[recipe.course]?.label ?? recipe.course}
+          {`${recipe.origin} \u00b7 ${COURSES[recipe.course]?.label ?? recipe.course}`}
         </span>
         {recipe.dietary.length > 0 && (
           <span className="bw-stamps">
@@ -66,7 +73,7 @@ function Card(props: { recipe: Recipe; author: string }): JSX.Element {
             ))}
           </span>
         )}
-      </a>
+      </div>
     </li>
   );
 }
@@ -82,7 +89,7 @@ function AddButton(): JSX.Element {
 export default function BrowsePage(): JSX.Element {
   const store = useStore();
   const [data, setData] = useState<Loaded>({ status: 'loading' });
-  const [filters, setFilters] = useState<BrowseFilters>(EMPTY_FILTERS);
+  const [filters, setFilters] = useState<BrowseFilters>(() => ({ ...EMPTY_FILTERS, authorId: peekAuthorHandoff() }));
   const [open, setOpen] = useState(false);
   const seq = useRef(0);
 
@@ -102,6 +109,7 @@ export default function BrowsePage(): JSX.Element {
   }, [store]);
 
   useEffect(() => {
+    clearAuthorHandoff(); // the choice carried from the recipe page has been taken
     void load();
     const unsubscribe = store.subscribe(() => void load());
     return () => {
@@ -114,7 +122,12 @@ export default function BrowsePage(): JSX.Element {
     () => (data.status === 'ready' ? [...data.recipes].sort((a, b) => b.createdAt - a.createdAt) : []),
     [data],
   );
-  const visible = useMemo(() => applyFilters(recipes, filters), [recipes, filters]);
+  const names = useMemo(() => {
+    const m: Record<string, string> = {};
+    if (data.status === 'ready') for (const [id, p] of Object.entries(data.people)) m[id] = p.name;
+    return m;
+  }, [data]);
+  const visible = useMemo(() => applyFilters(recipes, filters, names), [recipes, filters, names]);
   const set = (patch: Partial<BrowseFilters>) => setFilters((f) => ({ ...f, ...patch }));
   const clearAll = () => setFilters(EMPTY_FILTERS);
   const n = activeCount(filters);
@@ -165,7 +178,7 @@ export default function BrowsePage(): JSX.Element {
     ...filters.courses.map((c) => ({ key: `c-${c}`, label: COURSES[c].label, clear: () => set({ courses: toggle(filters.courses, c) }) })),
     ...filters.origins.map((o) => ({ key: `o-${o}`, label: o, clear: () => set({ origins: toggle(filters.origins, o) }) })),
     ...filters.occasions.map((o) => ({ key: `n-${o}`, label: o, clear: () => set({ occasions: toggle(filters.occasions, o) }) })),
-    ...(filters.authorId ? [{ key: 'a', label: nameOf(filters.authorId), clear: () => set({ authorId: undefined }) }] : []),
+    ...(filters.authorId ? [{ key: 'a', label: `From ${nameOf(filters.authorId)}\u2019s kitchen`, clear: () => set({ authorId: undefined }) }] : []),
     ...(filters.text.trim() ? [{ key: 't', label: `“${filters.text.trim()}”`, clear: () => set({ text: '' }) }] : []),
   ];
 
@@ -182,6 +195,8 @@ export default function BrowsePage(): JSX.Element {
           id="bw-search"
           type="search"
           className="bw-input"
+          placeholder={'Recipes, people, ingredients\u2026'}
+          title="Search recipes, people, ingredients and steps"
           value={filters.text}
           onChange={(e) => set({ text: e.target.value })}
         />
@@ -248,7 +263,7 @@ export default function BrowsePage(): JSX.Element {
       ) : (
         <ul className="bw-grid">
           {visible.map((r) => (
-            <Card key={r.id} recipe={r} author={nameOf(r.authorId)} />
+            <Card key={r.id} recipe={r} author={nameOf(r.authorId)} onAuthor={() => set({ authorId: r.authorId })} />
           ))}
         </ul>
       )}

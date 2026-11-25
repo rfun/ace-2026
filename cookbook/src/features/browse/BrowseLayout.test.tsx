@@ -25,8 +25,8 @@ describe('browse cards', () => {
   // Catches: title padding applied to every card (ragged titles) or missing on photo cards (title under the snapshot).
   it('marks only cards that have a photo', async () => {
     await open();
-    const ladoo = screen.getByText('Besan Ladoo').closest('a')!; // has a main photo
-    const empanadas = screen.getByText('Sample Baked Empanadas').closest('a')!; // none
+    const ladoo = screen.getByText('Besan Ladoo').closest<HTMLElement>('.bw-card')!; // has a main photo
+    const empanadas = screen.getByText('Sample Baked Empanadas').closest<HTMLElement>('.bw-card')!; // none
     expect(ladoo.querySelector('figure')).not.toBeNull();
     expect(ladoo).toHaveClass('bw-has-photo');
     expect(empanadas.querySelector('figure')).toBeNull();
