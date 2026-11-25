@@ -1,12 +1,13 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { StoreProvider } from '../../data/StoreProvider';
 import type { DataStore } from '../../data/store';
 import { createMockStore } from '../../data/mock/mockStore';
 import type { Me } from '../../domain/types';
 import { TipComposer } from './TipComposer';
 import * as tipsIndex from './index';
-import * as resizeMod from '../../lib/image/resize';
+import * as prepareMod from '../../lib/image/prepare';
+import { installSmallImageBackend, resetImageBackend } from '../../lib/image/testing';
 
 const writer: Me = { id: 'u-you', canWrite: true, canModerate: false };
 const viewer: Me = { id: 'u-you', canWrite: false, canModerate: false };
@@ -27,7 +28,9 @@ const submitBtn = () => screen.getByRole('button', { name: 'Pin it to the card' 
 const png = (name = 'a.png') => new File(['a'], name, { type: 'image/png' });
 
 const realCreateObjectURL = URL.createObjectURL;
+beforeEach(() => installSmallImageBackend());
 afterEach(() => {
+  resetImageBackend();
   URL.createObjectURL = realCreateObjectURL;
   vi.restoreAllMocks();
 });
@@ -156,6 +159,7 @@ describe('TipComposer', () => {
     mount(store);
     await type('with photo');
     fireEvent.change(await screen.findByLabelText('Photo (optional)'), { target: { files: [png()] } });
+    await screen.findByLabelText('Describe the photo');
     fireEvent.click(submitBtn());
     expect(await screen.findByText(/Describe the photo for people/)).toBeInTheDocument();
     expect(addSpy).not.toHaveBeenCalled();
@@ -166,18 +170,18 @@ describe('TipComposer', () => {
     expect(addSpy.mock.calls[0][1].photo?.alt).toBe('A tin of ladoo');
   });
 
-  // Catches: the raw file being uploaded instead of the resized blob.
-  it('uploads the resized blob, not the original file', async () => {
+  // Catches: the raw file being uploaded instead of the prepared (converted, resized) blob.
+  it('uploads the prepared blob, not the original file', async () => {
     const store = createMockStore({ me: writer, recipes: [], tips: [] });
     const small = new Blob(['tiny'], { type: 'image/jpeg' });
-    const rs = vi.spyOn(resizeMod, 'resizeImage').mockResolvedValue(small);
+    const rs = vi.spyOn(prepareMod, 'preparePhoto').mockResolvedValue(small);
     const up = vi.spyOn(store, 'uploadPhoto');
     URL.createObjectURL = vi.fn(() => 'blob:fake');
     const { onDone } = mount(store);
     await type('with photo');
     const original = png('big.png');
     fireEvent.change(await screen.findByLabelText('Photo (optional)'), { target: { files: [original] } });
-    fireEvent.change(screen.getByLabelText('Describe the photo'), { target: { value: 'A tin' } });
+    fireEvent.change(await screen.findByLabelText('Describe the photo'), { target: { value: 'A tin' } });
     fireEvent.click(submitBtn());
     await waitFor(() => expect(onDone).toHaveBeenCalled());
     expect(rs).toHaveBeenCalledWith(original);
@@ -195,11 +199,11 @@ describe('TipComposer', () => {
       return f;
     };
     fireEvent.change(input, { target: { files: [sized(20 * 1024 * 1024)] } });
+    expect(await screen.findByLabelText('Describe the photo')).toBeInTheDocument();
     expect(screen.queryByText(/over 20 MB/)).toBeNull();
-    expect(screen.getByLabelText('Describe the photo')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Remove photo' }));
     fireEvent.change(input, { target: { files: [sized(20 * 1024 * 1024 + 1)] } });
-    expect(screen.getByText(/over 20 MB/)).toBeInTheDocument();
+    expect(await screen.findByText('That photo is over 20 MB. Choose a smaller one.')).toBeInTheDocument();
     expect(screen.queryByLabelText('Describe the photo')).toBeNull();
   });
 
@@ -210,10 +214,10 @@ describe('TipComposer', () => {
     Object.defineProperty(big, 'size', { value: 20 * 1024 * 1024 + 1 });
     const input = await screen.findByLabelText('Photo (optional)');
     fireEvent.change(input, { target: { files: [big] } });
-    expect(screen.getByText(/over 20 MB/)).toBeInTheDocument();
+    expect(await screen.findByText(/over 20 MB/)).toBeInTheDocument();
     expect(screen.queryByLabelText('Describe the photo')).toBeNull();
     fireEvent.change(input, { target: { files: [png('ok.png')] } });
-    expect(screen.getByLabelText('Describe the photo')).toBeInTheDocument();
+    expect(await screen.findByLabelText('Describe the photo')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Remove photo' }));
     expect(screen.queryByLabelText('Describe the photo')).toBeNull();
   });

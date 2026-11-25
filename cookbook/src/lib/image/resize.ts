@@ -8,7 +8,7 @@ const DEFAULT_MAX_EDGE = 1600;
 const DEFAULT_QUALITY = 0.85;
 
 export class ImageTooLargeError extends Error {
-  constructor(message = 'That photo is larger than 20 MB. Choose a smaller one.') {
+  constructor(message = 'That photo is over 20 MB. Choose a smaller one.') {
     super(message);
     this.name = 'ImageTooLargeError';
   }
@@ -76,20 +76,27 @@ export function setImageBackend(next: ImageBackend | null): void {
   backend = next ?? browserBackend;
 }
 
+/** Decode with the browser's own decoder; null if it cannot (or cannot at all). */
+export function decodeNative(blob: Blob): Promise<DecodedImage | null> {
+  return backend.decode(blob);
+}
+
 /**
- * Downscale so the longest edge is at most maxEdge (default 1600) and re-encode as JPEG (quality 0.85).
- * Returns the original blob if it is already small enough and within maxEdge, or if decoding is unsupported.
- * Throws ImageTooLargeError if the input is over MAX_UPLOAD_BYTES.
+ * Shrink an already decoded image and re-encode as JPEG. `file` is the blob it was decoded from.
+ * Normally returns `file` itself when it is already small enough; with `forceEncode` it never does
+ * (used for HEIC, which must never be uploaded as is) and returns null if the encoder gave nothing.
  */
-export async function resizeImage(file: Blob, opts: { maxEdge?: number; quality?: number } = {}): Promise<Blob> {
-  if (file.size > MAX_UPLOAD_BYTES) throw new ImageTooLargeError();
+export async function shrinkDecoded(
+  file: Blob,
+  img: DecodedImage,
+  opts: { maxEdge?: number; quality?: number; forceEncode?: boolean } = {},
+): Promise<Blob | null> {
   const maxEdge = opts.maxEdge ?? DEFAULT_MAX_EDGE;
   const quality = opts.quality ?? DEFAULT_QUALITY;
-  const img = await backend.decode(file);
-  if (!img) return file;
   try {
     const target = fitWithin(img.width, img.height, maxEdge);
     const scaled = target.width !== img.width || target.height !== img.height;
+    if (opts.forceEncode) return await backend.encode(img, target, quality);
     if (!scaled && file.size <= SMALL_ENOUGH_BYTES) return file;
     const out = await backend.encode(img, target, quality);
     if (!out) return file;
@@ -99,4 +106,17 @@ export async function resizeImage(file: Blob, opts: { maxEdge?: number; quality?
   } finally {
     img.close?.();
   }
+}
+
+/**
+ * Downscale so the longest edge is at most maxEdge (default 1600) and re-encode as JPEG (quality 0.85).
+ * Returns the original blob if it is already small enough and within maxEdge, or if decoding is unsupported.
+ * Throws ImageTooLargeError if the input is over MAX_UPLOAD_BYTES.
+ * Photo pickers use preparePhoto (prepare.ts), which also validates the type and converts HEIC.
+ */
+export async function resizeImage(file: Blob, opts: { maxEdge?: number; quality?: number } = {}): Promise<Blob> {
+  if (file.size > MAX_UPLOAD_BYTES) throw new ImageTooLargeError();
+  const img = await backend.decode(file);
+  if (!img) return file;
+  return (await shrinkDecoded(file, img, opts)) ?? file;
 }

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ChangeEvent } from 'react';
-import { ImageTooLargeError } from '../../lib/image/resize';
+import { PHOTO_ACCEPT, PHOTO_HINT, PHOTO_MESSAGES, PHOTO_PREPARING, photoErrorMessage } from '../../lib/image/messages';
+import { preparePhoto } from '../../lib/image/prepare';
 import { ImportError, importRecipe } from '../../lib/import';
 import type { ImportedBy, ImportedRecipe, SampleFn } from '../../lib/import';
 
@@ -9,7 +10,7 @@ export const IMPORT_MESSAGES = {
   photoNeedsClaude: 'Photo reading needs Claude access in claude.ai. Paste the text instead.',
   photoFailed: "Claude couldn't read that photo. Try a clearer one, or paste the text instead.",
   photoUnavailable: "Photo reading isn't available here. Paste the text instead.",
-  photoTooBig: 'That photo is larger than 20 MB. Choose a smaller one.',
+  photoTooBig: PHOTO_MESSAGES.tooLarge,
   nothingFound: "Couldn't find a recipe in that. Check what you pasted and try again.",
   generic: "Couldn't read that recipe. Paste the text and try again.",
 } as const;
@@ -39,8 +40,10 @@ async function resolveSample(): Promise<SampleFn | null> {
   }
 }
 
+const PHOTO_ERROR_NAMES = new Set(['ImageTooLargeError', 'UnsupportedImageError', 'UnreadableImageError', 'HeicConversionError']);
+
 function messageFor(err: unknown): string {
-  if (err instanceof ImageTooLargeError) return IMPORT_MESSAGES.photoTooBig;
+  if (err instanceof Error && PHOTO_ERROR_NAMES.has(err.name)) return photoErrorMessage(err);
   if (err instanceof ImportError) {
     switch (err.code) {
       case 'empty': return IMPORT_MESSAGES.empty;
@@ -62,6 +65,8 @@ export default function ImportPanel(props: {
   const [text, setText] = useState('');
   const [image, setImage] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
+  const [preparing, setPreparing] = useState(false);
+  const [photoFailed, setPhotoFailed] = useState(false);
   const [error, setError] = useState('');
   const [hasClaude, setHasClaude] = useState(false);
   const samplePromise = useRef<Promise<SampleFn | null> | null>(null);
@@ -81,22 +86,38 @@ export default function ImportPanel(props: {
     };
   }, []);
 
-  const onFile = (e: ChangeEvent<HTMLInputElement>) => {
+  // The photo is checked and converted (HEIC to JPEG) as soon as it is picked, so a bad file is reported
+  // here, next to the picker, and only a ready JPEG/PNG/WebP/GIF is ever kept for the import.
+  const onFile = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = '';
-    if (file) {
-      setImage(file);
-      setError('');
+    if (!file) return;
+    setError('');
+    setPhotoFailed(false);
+    setImage(null);
+    setPreparing(true);
+    try {
+      const ready = await preparePhoto(file);
+      if (!mounted.current) return;
+      setImage(new File([ready], file.name, { type: ready.type || file.type }));
+    } catch (err) {
+      if (mounted.current) {
+        setError(photoErrorMessage(err));
+        setPhotoFailed(true);
+      }
+    } finally {
+      if (mounted.current) setPreparing(false);
     }
   };
 
   const run = async () => {
-    if (busy) return;
+    if (busy || preparing) return;
     if (text.trim() === '' && !image) {
       setError(IMPORT_MESSAGES.empty);
       return;
     }
     setError('');
+    setPhotoFailed(false);
     setBusy(true);
     const ac = new AbortController();
     abortRef.current = ac;
@@ -141,12 +162,16 @@ export default function ImportPanel(props: {
           id="f-import-file"
           className="sr-only"
           type="file"
-          accept="image/*"
+          accept={PHOTO_ACCEPT}
           capture="environment"
-          onChange={onFile}
-          disabled={busy}
+          onChange={(e) => void onFile(e)}
+          disabled={busy || preparing}
+          aria-describedby={photoFailed && error ? 'f-import-photo-hint f-import-err' : 'f-import-photo-hint'}
+          aria-invalid={photoFailed && error ? true : undefined}
         />
         <label className="btn btn-prop cp-filebtn" htmlFor="f-import-file">Or use a photo of a recipe card</label>
+        <p className="cp-hint" id="f-import-photo-hint">{PHOTO_HINT}</p>
+        {preparing && <p className="cp-note" role="status">{PHOTO_PREPARING}</p>}
         {image && (
           <span className="cp-import-file">
             {image.name}{' '}
@@ -156,10 +181,10 @@ export default function ImportPanel(props: {
       </div>
 
       {hasClaude && <p className="cp-hint">Claude reads what you paste only to fill this form, using your Claude account.</p>}
-      {error && <p className="cp-err" role="alert">{error}</p>}
+      {error && <p className="cp-err" id="f-import-err" role="alert">{error}</p>}
 
       <div className="cp-actions">
-        <button type="button" className="btn" onClick={() => void run()} disabled={busy}>
+        <button type="button" className="btn" onClick={() => void run()} disabled={busy || preparing}>
           {busy ? 'Reading…' : 'Fill in the form'}
         </button>
         <button type="button" className="quiet" onClick={cancel}>Cancel</button>

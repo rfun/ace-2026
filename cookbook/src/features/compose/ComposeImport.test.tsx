@@ -5,6 +5,7 @@ import type { DataStore } from '../../data/store';
 import { createMockStore } from '../../data/mock/mockStore';
 import type { Me } from '../../domain/types';
 import ComposeScreen from './index';
+import { installSmallImageBackend, resetImageBackend } from '../../lib/image/testing';
 
 const author: Me = { id: 'u-jordan', canWrite: true, canModerate: false };
 const reader: Me = { id: 'u-you', canWrite: false, canModerate: false };
@@ -55,14 +56,19 @@ const paste = (t: string) => fireEvent.change(screen.getByLabelText(/^Paste the 
 const fill = () => fireEvent.click(screen.getByRole('button', { name: /^(Fill in the form|Reading)/ }));
 const type = (label: string | RegExp, value: string) => fireEvent.change(screen.getByLabelText(label), { target: { value } });
 const png = () => new File(['x'], 'card.png', { type: 'image/png' });
-const pickImage = (f: File) => fireEvent.change(document.getElementById('f-import-file')!, { target: { files: [f] } });
+const pickImage = async (f: File) => {
+  fireEvent.change(document.getElementById('f-import-file')!, { target: { files: [f] } });
+  await screen.findByRole('button', { name: 'Remove photo' }); // picked and prepared
+};
 
 beforeEach(() => {
+  installSmallImageBackend();
   window.location.hash = '#/compose';
   window.localStorage.clear();
   delete (globalThis as { claude?: unknown }).claude;
 });
 afterEach(() => {
+  resetImageBackend();
   delete (globalThis as { claude?: unknown }).claude;
 });
 
@@ -73,7 +79,7 @@ describe('Import a recipe: entry point', () => {
     openPanel();
     expect(screen.getByLabelText(/^Paste the recipe/)).toBeInTheDocument();
     const file = screen.getByLabelText('Or use a photo of a recipe card') as HTMLInputElement;
-    expect(file.accept).toBe('image/*');
+    expect(file.accept).toBe('image/*,.heic,.heif');
     expect(file.getAttribute('capture')).toBe('environment');
     expect(screen.getByRole('button', { name: 'Fill in the form' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
@@ -197,7 +203,7 @@ describe('Import a recipe: local parser (no sample)', () => {
   it('a photo with no sample shows the Claude-access message', async () => {
     await ready(createMockStore({ me: author }));
     openPanel();
-    pickImage(png());
+    await pickImage(png());
     fill();
     expect(await screen.findByRole('alert')).toHaveTextContent('Photo reading needs Claude access in claude.ai. Paste the text instead.');
     expect(screen.getByLabelText(/^Title/)).toHaveValue('');
@@ -207,7 +213,7 @@ describe('Import a recipe: local parser (no sample)', () => {
     installClaude(null);
     await ready(createMockStore({ me: author }));
     openPanel();
-    pickImage(png());
+    await pickImage(png());
     fill();
     expect(await screen.findByRole('alert')).toHaveTextContent('Photo reading needs Claude access');
   });
@@ -288,7 +294,7 @@ describe('Import a recipe: with Claude', () => {
     installClaude(sample);
     await ready(createMockStore({ me: author }));
     openPanel();
-    pickImage(png());
+    await pickImage(png());
     expect(screen.getByText('card.png')).toBeInTheDocument();
     fill();
     await screen.findByText('Filled in by Claude — check every field');
@@ -301,7 +307,7 @@ describe('Import a recipe: with Claude', () => {
     installClaude(fakeSample(async () => Promise.reject({ code: 'rate_limited', message: 'm' })));
     await ready(createMockStore({ me: author }));
     openPanel();
-    pickImage(png());
+    await pickImage(png());
     fill();
     const alert = await screen.findByRole('alert');
     expect(alert).toHaveTextContent(/couldn't read that photo/i);
@@ -313,7 +319,7 @@ describe('Import a recipe: with Claude', () => {
     installClaude(fakeSample(async () => ({}), false));
     await ready(createMockStore({ me: author }));
     openPanel();
-    pickImage(png());
+    await pickImage(png());
     fill();
     expect(await screen.findByRole('alert')).toHaveTextContent("Photo reading isn't available here. Paste the text instead.");
   });

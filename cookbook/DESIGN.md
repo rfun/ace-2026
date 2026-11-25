@@ -98,6 +98,7 @@ Shared pieces live in `src/styles/components.css`; feature CSS adds layout only.
 - Phone text at least 17px (see Type). No visible text under 13px on desktop.
 - Visible focus on every control on both card and tin grounds; the visually hidden photo input shows focus on its button (`.cp-ground input.sr-only:focus-visible + .cp-filebtn`). `.sr-only` is the hidden-text utility.
 - Form errors are in text with `aria-invalid` styling, not colour alone.
+- Photo controls: every place a photo can be picked (recipe photo, each step photo, tip photo, import photo) shows the hint "JPG, PNG, WebP or HEIC · up to 20 MB" under the control (`.cp-hint` / `.tips-hint`, linked with `aria-describedby`), shows "Preparing photo…" while converting or resizing, and reports failure in one shared set of sentences (`src/lib/image/messages.ts`): too large, unsupported type, HEIC conversion failed, no permission, upload failed. The error is `role="alert"` and the input gets `aria-invalid`. Add new photo pickers to this set; do not write new wording.
 - Overflow-wrap is set on titles so non-Latin and long titles do not break layout.
 
 ## Adding a feature: do and don't

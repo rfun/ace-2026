@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { checkHtml, checkSource } from './check-dist-lib.mjs';
+import { checkDist, checkHtml, checkSource, MAX_PAGE_BYTES } from './check-dist-lib.mjs';
 
 const page = (body) => `<!doctype html><html><head>${body}</head><body></body></html>`;
 
@@ -66,4 +66,26 @@ describe('checkSource', () => {
     expect(found[0]).toContain('line 2');
     expect(checkSource("x.replace(/\\uFFFD+$/, '')", 'src/a.ts')).toEqual([]);
   });
+});
+
+describe('checkDist', () => {
+  const ok = { 'index.html': '<html></html>', 'heic-to.js': 'export{B as heicTo}' };
+  it('accepts a small page with the converter beside it', () => expect(checkDist(ok)).toEqual([]));
+  it('fails a page over 400 KB (catches libheif being bundled into index.html)', () => {
+    const found = checkDist({ ...ok, 'index.html': 'x'.repeat(MAX_PAGE_BYTES + 1) });
+    expect(found).toHaveLength(1);
+    expect(found[0]).toContain('over the 409600 byte bound');
+  });
+  it('accepts a page of exactly 400 KB (catches an off-by-one on the bound)', () => {
+    expect(checkDist({ ...ok, 'index.html': 'x'.repeat(MAX_PAGE_BYTES) })).toEqual([]);
+  });
+  it('fails when the converter file is missing (catches publishing the page without heic-to.js)', () => {
+    const found = checkDist({ ...ok, 'heic-to.js': null });
+    expect(found).toHaveLength(1);
+    expect(found[0]).toContain('heic-to.js is missing');
+  });
+  it('fails when the converter is the wrong file (catches an empty or renamed converter)', () => {
+    expect(checkDist({ ...ok, 'heic-to.js': 'console.log(1)' })).toHaveLength(1);
+  });
+  it('fails when index.html is missing', () => expect(checkDist({ ...ok, 'index.html': null })).toHaveLength(1));
 });

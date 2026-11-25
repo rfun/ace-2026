@@ -1,7 +1,8 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { useStore } from '../../data/StoreProvider';
 import type { Me, Photo, Tip } from '../../domain/types';
-import { ImageTooLargeError, MAX_UPLOAD_BYTES, resizeImage } from '../../lib/image/resize';
+import { PHOTO_ACCEPT, PHOTO_HINT, PHOTO_PREPARING, photoErrorMessage } from '../../lib/image/messages';
+import { preparePhoto } from '../../lib/image/prepare';
 import { penFor } from '../recipe/pens';
 import './tips.css';
 
@@ -14,7 +15,9 @@ export function TipComposer({ recipeId, onDone, onCancel }: TipComposerProps): J
   const uid = useId();
   const [me, setMe] = useState<Me | null>(null);
   const [text, setText] = useState('');
-  const [file, setFile] = useState<File | null>(null);
+  /** The photo after checking, HEIC conversion and resizing: what gets uploaded. */
+  const [file, setFile] = useState<Blob | null>(null);
+  const [preparing, setPreparing] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [alt, setAlt] = useState('');
   const [busy, setBusy] = useState(false);
@@ -54,6 +57,7 @@ export function TipComposer({ recipeId, onDone, onCancel }: TipComposerProps): J
   const pen = penFor(me.id);
   const textErrId = `${uid}-text-err`;
   const photoErrId = `${uid}-photo-err`;
+  const photoHintId = `${uid}-photo-hint`;
   const countId = `${uid}-count`;
   const describedBy = [countId, textError ? textErrId : ''].filter(Boolean).join(' ');
 
@@ -62,22 +66,29 @@ export function TipComposer({ recipeId, onDone, onCancel }: TipComposerProps): J
     else onCancel();
   }
 
-  function pickFile(f: File | null) {
+  async function pickFile(f: File | null) {
     setPhotoError('');
     if (!f) return;
-    if (f.size > MAX_UPLOAD_BYTES) {
-      setPhotoError('That photo is over 20 MB. Pick a smaller one.');
-      if (fileRef.current) fileRef.current.value = '';
-      return;
-    }
-    setFile(f);
-    let url: string | null = null;
+    setFile(null);
+    setPreview(null);
+    setPreparing(true);
     try {
-      if (typeof URL.createObjectURL === 'function') url = URL.createObjectURL(f);
-    } catch {
-      url = null; // the preview is a nicety; never let it block attaching the photo
+      const ready = await preparePhoto(f);
+      if (!alive.current) return;
+      setFile(ready);
+      let url: string | null = null;
+      try {
+        if (typeof URL.createObjectURL === 'function') url = URL.createObjectURL(ready);
+      } catch {
+        url = null; // the preview is a nicety; never let it block attaching the photo
+      }
+      setPreview(url);
+    } catch (err) {
+      if (alive.current) setPhotoError(photoErrorMessage(err));
+      if (fileRef.current) fileRef.current.value = '';
+    } finally {
+      if (alive.current) setPreparing(false);
     }
-    setPreview(url);
   }
 
   function removePhoto() {
@@ -89,24 +100,33 @@ export function TipComposer({ recipeId, onDone, onCancel }: TipComposerProps): J
   }
 
   async function submit() {
-    if (busy) return;
+    if (busy || preparing) return;
     const body = text.trim();
     setTextError('');
     setPhotoError('');
     if (!body) { setTextError('Write something first.'); areaRef.current?.focus(); return; }
     if (file && !alt.trim()) { setPhotoError('Describe the photo for people who cannot see it.'); return; }
     setBusy(true);
+    let photo: Photo | undefined;
+    if (file) {
+      try {
+        photo = await store.uploadPhoto(file, alt.trim());
+      } catch (err) {
+        if (alive.current) {
+          setBusy(false);
+          setPhotoError(photoErrorMessage(err));
+        }
+        return;
+      }
+    }
     try {
-      let photo: Photo | undefined;
-      if (file) photo = await store.uploadPhoto(await resizeImage(file), alt.trim());
       const tip = await store.addTip(recipeId, { text: body, photo });
       if (alive.current) setBusy(false);
       onDone(tip);
-    } catch (err) {
+    } catch {
       if (alive.current) {
         setBusy(false);
-        if (err instanceof ImageTooLargeError) setPhotoError('That photo is over 20 MB. Pick a smaller one.');
-        else setTextError("Couldn't pin your tip. It's still here.");
+        setTextError("Couldn't pin your tip. It's still here.");
       }
     }
   }
@@ -154,11 +174,14 @@ export function TipComposer({ recipeId, onDone, onCancel }: TipComposerProps): J
           ref={fileRef}
           className="tips-file"
           type="file"
-          accept="image/*"
-          disabled={busy}
-          aria-describedby={photoError ? photoErrId : undefined}
-          onChange={(e) => pickFile(e.target.files?.[0] ?? null)}
+          accept={PHOTO_ACCEPT}
+          disabled={busy || preparing}
+          aria-describedby={photoError ? `${photoHintId} ${photoErrId}` : photoHintId}
+          aria-invalid={photoError && !file ? true : undefined}
+          onChange={(e) => void pickFile(e.target.files?.[0] ?? null)}
         />
+        <p id={photoHintId} className="tips-hint">{PHOTO_HINT}</p>
+        {preparing && <p className="tips-note" role="status">{PHOTO_PREPARING}</p>}
         {file && (
           <div className="tips-attached">
             {preview && <img className="tips-preview" src={preview} alt="" />}
@@ -187,7 +210,7 @@ export function TipComposer({ recipeId, onDone, onCancel }: TipComposerProps): J
         </div>
       ) : (
         <div className="tips-actions">
-          <button type="submit" className="btn" disabled={busy}>{busy ? 'Pinning…' : 'Pin it to the card'}</button>
+          <button type="submit" className="btn" disabled={busy || preparing}>{busy ? 'Pinning…' : 'Pin it to the card'}</button>
           <button type="button" className="quiet" onClick={requestCancel}>Cancel</button>
         </div>
       )}

@@ -1,3 +1,4 @@
+import { PhotoPermissionError, PhotoUploadError } from '../../lib/image/errors';
 import type { Me, Person, Photo, Recipe, RecipeDraft, Tip, UserId } from '../../domain/types';
 import type { DataStore } from '../store';
 import { parseHidden, parseRecipe, parseTip, toStoredPhoto, type Hidden } from './parse';
@@ -189,8 +190,16 @@ export function createArtifactStore(rt: ArtifactRuntime): DataStore {
     },
 
     async uploadPhoto(file: Blob, alt: string): Promise<Photo> {
-      if (!assets) throw new Error('uploads-unavailable');
-      const res = await assets.upload(file);
+      if (!assets) throw new PhotoPermissionError();
+      let res: { id: string; url: string };
+      try {
+        res = await assets.upload(file);
+      } catch (err) {
+        // The runtime reports a refused capability as { code: 'not_granted' }; anything else is a failed attempt.
+        const code = typeof err === 'object' && err !== null ? (err as { code?: unknown }).code : undefined;
+        if (code === 'not_granted') throw new PhotoPermissionError('not_granted');
+        throw new PhotoUploadError('upload-failed', err);
+      }
       return { assetId: res.id, url: '/_blob/' + res.id, alt };
     },
 

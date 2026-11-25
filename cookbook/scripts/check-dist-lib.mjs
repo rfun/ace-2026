@@ -2,6 +2,11 @@
 
 export const MAX_BYTES = 16 * 1024 * 1024;
 export const SCRIPT_ORIGINS = ['https://cdnjs.cloudflare.com/', 'https://cdn.jsdelivr.net/npm/', 'https://unpkg.com/'];
+/** The page must stay small: the 3 MB HEIC converter ships as a separate file, never inside it. */
+export const MAX_PAGE_BYTES = 400 * 1024;
+export const CONVERTER_FILE = 'heic-to.js';
+/** Every file that must be published together; the page alone is not enough to accept HEIC photos. */
+export const DIST_FILES = ['index.html', CONVERTER_FILE];
 export const STYLE_ORIGINS = ['https://fonts.googleapis.com/'];
 
 const EXTERNAL = /^\s*(https?:)?\/\//i;
@@ -59,5 +64,21 @@ export function checkSource(text, file) {
   if (text.includes('dangerouslySetInnerHTML')) problems.push(`dangerouslySetInnerHTML used in ${file}`);
   const line = text.split('\n').findIndex((l) => l.includes('\uFFFD'));
   if (line >= 0) problems.push(`literal U+FFFD (replacement character) in ${file} line ${line + 1}; write it as an escape`);
+  return problems;
+}
+
+/**
+ * Checks the set of built files. `files` maps a dist file name to its text, or to null if absent.
+ * Returns one message per problem (empty array = OK).
+ */
+export function checkDist(files) {
+  const problems = [];
+  const page = files['index.html'];
+  if (page == null) return ['dist/index.html not found'];
+  const bytes = Buffer.byteLength(page, 'utf8');
+  if (bytes > MAX_PAGE_BYTES) problems.push(`index.html is ${bytes} bytes, over the ${MAX_PAGE_BYTES} byte bound: the HEIC converter must not be bundled into the page`);
+  const conv = files[CONVERTER_FILE];
+  if (conv == null) problems.push(`dist/${CONVERTER_FILE} is missing: HEIC photos cannot be converted without it`);
+  else if (!conv.includes('heicTo')) problems.push(`dist/${CONVERTER_FILE} does not export heicTo`);
   return problems;
 }

@@ -18,6 +18,8 @@ export interface FakeOptions {
   canWrite?: boolean | null;
   db?: boolean;
   assets?: boolean;
+  /** Make assets.upload reject with this value (e.g. { code: 'not_granted' } or an Error). */
+  uploadError?: unknown;
   names?: Record<string, string>;
 }
 
@@ -89,6 +91,7 @@ export function createFakeRuntime(opts: FakeOptions = {}): FakeRuntime {
         ? null
         : {
             upload: async (blob) => {
+              if (opts.uploadError !== undefined) throw opts.uploadError;
               uploads.push(blob);
               return { id: `asset-${uploads.length}`, url: 'https://ignored.example/should-not-be-used' };
             },
