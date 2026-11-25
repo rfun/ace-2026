@@ -44,13 +44,25 @@ describe('Compose keywords', () => {
   });
 
   // Catches: Enter not adding a chip, or Enter submitting the recipe form instead.
-  it('Enter adds a chip, clears the box and does not submit the form', async () => {
+  it('Enter adds a chip and clears the box', async () => {
     await ready(createMockStore({ me: author }));
     typeText('Noodles');
     press('Enter');
     expect(chips()).toEqual(['noodles']);
     expect(box().value).toBe('');
     expect(screen.queryByText(/things need fixing|One thing needs fixing/)).toBeNull();
+  });
+
+  // Catches: Enter or comma keydown not being default-prevented (a real browser would then submit the form / type the comma).
+  it('prevents the default action of Enter and comma (fireEvent returns false)', async () => {
+    await ready(createMockStore({ me: author }));
+    typeText('soup');
+    expect(fireEvent.keyDown(box(), { key: 'Enter' })).toBe(false);
+    typeText('rice');
+    expect(fireEvent.keyDown(box(), { key: ',' })).toBe(false);
+    expect(chips()).toEqual(['soup', 'rice']);
+    // other keys keep their default
+    expect(fireEvent.keyDown(box(), { key: 'a' })).toBe(true);
   });
 
   // Catches: comma key not adding (keydown path).
