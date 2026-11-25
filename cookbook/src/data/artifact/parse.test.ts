@@ -55,3 +55,37 @@ describe('serves', () => {
     expect('serves' in r).toBe(false);
   });
 });
+
+describe('tags', () => {
+  const withTags = (tags: unknown) => parseRecipe({ ...rawRecipe(), tags }, 'u1')!;
+  // Catches: older docs (no tags key) failing to load or getting an empty array that changes saves.
+  it('loads a doc with no tags, leaving tags undefined', () => {
+    const r = parseRecipe(rawRecipe(), 'u1');
+    expect(r).not.toBeNull();
+    expect(r!.tags).toBeUndefined();
+  });
+  // Catches: stored tags skipping normalisation on read (case/space/duplicate variants reaching the filter list).
+  it('normalises stored tags the same way as saving', () => {
+    expect(withTags([' Noodles ', 'noodles', 'Rice   Soup', ''] as unknown).tags).toEqual(['noodles', 'rice soup']);
+  });
+  // Catches: one bad entry rejecting the whole recipe, or a number/object becoming a tag.
+  it('drops non-string entries and keeps the recipe', () => {
+    expect(withTags(['soup', 5, null, { a: 1 }, ['x'], 'noodles']).tags).toEqual(['soup', 'noodles']);
+  });
+  // Catches: a non-array tags value (string, object) throwing or being kept.
+  it.each(['soup', { 0: 'soup' }, 7, null, true])('ignores non-array tags %j', (bad) => {
+    const r = parseRecipe({ ...rawRecipe(), tags: bad }, 'u1');
+    expect(r).not.toBeNull();
+    expect(r!.tags).toBeUndefined();
+  });
+  // Catches: oversize stored lists (over 10, or a 25-character tag) being trusted.
+  it('enforces the 10-tag and 24-character limits on read', () => {
+    const many = Array.from({ length: 12 }, (_, i) => `t${i}`);
+    expect(withTags(many).tags).toEqual(many.slice(0, 10));
+    expect(withTags(['x'.repeat(25), 'ok']).tags).toEqual(['ok']);
+  });
+  // Catches: an all-invalid list leaving tags: [] behind.
+  it('omits tags when nothing valid remains', () => {
+    expect(withTags(['', 5]).tags).toBeUndefined();
+  });
+});

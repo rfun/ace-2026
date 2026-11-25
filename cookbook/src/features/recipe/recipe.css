@@ -20,6 +20,10 @@
 .rc-line { font: 400 17px/32px var(--font-read); margin: 0; }
 .rc-meta { font: 700 15px/24px var(--font-typed); color: var(--ink-soft); margin: 0 0 8px; }
 
+.rc-tags { list-style: none; margin: 0 0 8px; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.rc-tags .rc-tag { font: 700 15px/24px var(--font-typed); color: var(--ink); background: none; border: 2px solid var(--rule); border-radius: 5px; padding: 4px 10px; min-height: 32px; cursor: pointer; position: relative; }
+.rc-tags .rc-tag::after { content: ""; position: absolute; left: 0; right: 0; top: -6px; bottom: -6px; }
+.rc-tags .rc-tag:focus-visible { outline: 3px solid var(--stamp-violet); outline-offset: 2px; }
 .rc-stamps { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; }
 
 .rc-actions { display: flex; align-items: center; gap: 16px; margin-top: 16px; }
@@ -86,6 +90,7 @@
   .rc-hand, .rc-sign, .rc-qty { font-size: 22px; }
   .rc-body { font-size: 18px; }
   .rc-meta, .rc-margin-label { font-size: 17px; }
+  .rc-tags .rc-tag { font-size: 17px; }
   .rc-hidden-note { font-size: 15px; line-height: 20px; }
   .rc-ing li { grid-template-columns: 96px 1fr; }
 }

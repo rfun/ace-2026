@@ -6,6 +6,7 @@ import { createMockStore } from '../../data/mock/mockStore';
 import { SAMPLE_RECIPES } from '../../data/mock/samples';
 import type { Me } from '../../domain/types';
 import { setAuthorHandoff } from './authorHandoff';
+import { clearTagHandoff, setTagHandoff } from './tagHandoff';
 import BrowseScreen from './index';
 
 const writer: Me = { id: 'u-you', canWrite: true, canModerate: false };
@@ -237,5 +238,52 @@ describe('BrowsePage', () => {
     expect(screen.getAllByRole('link').map((a) => a.textContent)).toEqual(['Besan Ladoo']);
     fireEvent.change(box, { target: { value: 'jordan' } });
     expect(screen.getAllByRole('link').map((a) => a.textContent)).toEqual(['Besan Ladoo']);
+  });
+});
+
+describe('BrowsePage keywords', () => {
+  // Catches: no Keywords group, or listing tags unsorted/duplicated, or inside the phone-collapsible block.
+  it('offers a Keywords group listing the distinct tags in use, sorted, inside the collapsible filters', async () => {
+    const store = createMockStore({ me: writer });
+    await store.saveRecipe({ ...SAMPLE_RECIPES[0], id: undefined as never, title: 'Extra Soup', tags: ['soup', 'festival'] });
+    mount(store);
+    await screen.findByText('Besan Ladoo');
+    const group = screen.getByRole('group', { name: 'Keywords' });
+    expect(group.closest('#bw-filters')).not.toBeNull();
+    // sample ladoo: sweet, gram flour, festival; new recipe: soup, festival
+    expect(within(group).getAllByRole('button').map((b) => b.textContent)).toEqual(['festival', 'gram flour', 'soup', 'sweet']);
+  });
+
+  // Catches: selecting a keyword not filtering, not counted in Filters (n), or no removable active chip.
+  it('selecting a keyword filters the cards, counts as an active filter and shows a removable chip', async () => {
+    mount(createMockStore({ me: writer }));
+    await screen.findByText('Besan Ladoo');
+    fireEvent.click(within(screen.getByRole('group', { name: 'Keywords' })).getByRole('button', { name: 'sweet' }));
+    expect(screen.getAllByRole('link').map((a) => a.textContent)).toEqual(['Besan Ladoo']);
+    expect(screen.getByRole('button', { name: /^Filters \(1\)/ })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Remove filter sweet' }));
+    expect(screen.getAllByRole('link')).toHaveLength(3);
+  });
+
+  // Catches: keywords not found by the search box.
+  it('typing a keyword in the search box finds the recipe', async () => {
+    mount(createMockStore({ me: writer }));
+    await screen.findByText('Besan Ladoo');
+    fireEvent.change(screen.getByLabelText('Search recipes'), { target: { value: 'gram flour' } });
+    expect(screen.getAllByRole('link').map((a) => a.textContent)).toEqual(['Besan Ladoo']);
+  });
+
+  // Catches: the recipe-page tag click not arriving as a filter, or the handoff sticking around for the next visit.
+  it('opens already filtered by a handed-off tag and clears the handoff once mounted', async () => {
+    setTagHandoff('festival');
+    const first = mount(createMockStore({ me: writer }));
+    await screen.findByText('Besan Ladoo');
+    expect(screen.getAllByRole('link')).toHaveLength(1);
+    expect(screen.getByRole('button', { name: 'Remove filter festival' })).toBeInTheDocument();
+    first.unmount();
+    mount(createMockStore({ me: writer }));
+    await screen.findByText('Besan Ladoo');
+    expect(screen.getAllByRole('link')).toHaveLength(3);
+    clearTagHandoff();
   });
 });

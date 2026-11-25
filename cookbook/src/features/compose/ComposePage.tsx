@@ -21,6 +21,7 @@ import {
 } from './form';
 import type { Errors, FormState, PhotoSlot } from './form';
 import ImportPanel, { BY_LINE } from './ImportPanel';
+import TagsField from './TagsField';
 import { appendIngredients, appendSteps, describeFilled, mergeImported } from './importMerge';
 import type { PendingLists } from './importMerge';
 import './compose.css';
@@ -467,6 +468,7 @@ export default function ComposePage(props: { id?: string }): JSX.Element {
               id="f-occasions" label="Occasions" value={form.occasions} errors={errors}
               hint="Separate with commas: Diwali, birthdays" onChange={(v) => patch({ occasions: v })}
             />
+            <TagsField tags={form.tags} onChange={(tags) => patch({ tags })} />
             <div className="cp-field">
               <label className="label" htmlFor="f-course">Course <span aria-hidden="true">*</span></label>
               <select

@@ -27,6 +27,16 @@ describe('parseWithClaude', () => {
     expect(prompt).toContain('"serves": integer');
   });
 
+  // Catches: the schema not offering tags to Claude (so keywords are never suggested), or the 5-tag cap missing.
+  it('asks for up to 5 tags and keeps at most 5 of what comes back', async () => {
+    const s = fake(async () => ({ tags: ['a', 'b', 'c', 'd', 'e', 'f', 'g'] }));
+    const out = await parseWithClaude(s, { text: 'Dal recipe' });
+    const prompt = s.json.mock.calls[0][0] as string;
+    expect(prompt).toContain('"tags": string[]');
+    expect(prompt).toMatch(/up to 5/);
+    expect(out.tags).toEqual(['a', 'b', 'c', 'd', 'e']);
+  });
+
   it('passes no images for text-only input', async () => {
     const s = fake(async () => ({}));
     await parseWithClaude(s, { text: 'x' });

@@ -5,6 +5,7 @@ import { useStore } from '../../data/StoreProvider';
 import { COURSES, DIETARY, stockClass } from '../../domain/tags';
 import type { Me, Person, Photo, Recipe, Tip, UserId } from '../../domain/types';
 import { setAuthorHandoff } from '../browse/authorHandoff';
+import { setTagHandoff } from '../browse/tagHandoff';
 import { TipComposer } from '../tips';
 import { penFor } from './pens';
 import ServingsControl from './ServingsControl';
@@ -246,6 +247,25 @@ export default function RecipePage(props: { id: string; onAddTip?: () => void })
           </p>
           {teamCity && <p className="rc-line">{teamCity}</p>}
           <p className="rc-meta">{meta.join(' · ')}</p>
+          {recipe.tags && recipe.tags.length > 0 && (
+            <ul className="rc-tags" aria-label="Keywords">
+              {recipe.tags.map((tag) => (
+                <li key={tag}>
+                  <button
+                    type="button"
+                    className="rc-tag"
+                    title={`See all recipes tagged ${tag}`}
+                    onClick={() => {
+                      setTagHandoff(tag);
+                      navigate({ name: 'browse' });
+                    }}
+                  >
+                    {tag}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
           <ul className="rc-stamps" aria-label="Dietary notes">
             {recipe.sample && <li className="stamp stamp-sample">Sample recipe</li>}
             {recipe.dietary.map((tag) => (

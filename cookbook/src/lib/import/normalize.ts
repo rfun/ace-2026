@@ -1,4 +1,5 @@
 import { COURSES, DIETARY } from '../../domain/tags';
+import { normalizeTags } from '../../domain/types';
 import type { Course, DietaryTag, Ingredient } from '../../domain/types';
 import { splitIngredient } from './ingredient';
 import type { ImportedRecipe } from './types';
@@ -7,6 +8,7 @@ export const MAX_INGREDIENTS = 60;
 export const MAX_STEPS = 40;
 export const MAX_MINUTES = 2880;
 export const MAX_SERVES = 100;
+export const MAX_IMPORT_TAGS = 5;
 const CAP = { title: 120, story: 1500, origin: 80, occasion: 40, occasions: 8, makes: 60, quantity: 40, item: 140, step: 600, note: 200 };
 
 const has = (o: object, k: string) => Object.prototype.hasOwnProperty.call(o, k);
@@ -52,6 +54,11 @@ export function normalizeImported(raw: unknown): ImportedRecipe {
       if (has(DIETARY, k) && !tags.includes(k as DietaryTag)) tags.push(k as DietaryTag);
     }
     if (tags.length) out.dietary = tags;
+  }
+
+  if (Array.isArray(r.tags)) {
+    const tags = normalizeTags(r.tags.filter((t): t is string => typeof t === 'string')).slice(0, MAX_IMPORT_TAGS);
+    if (tags.length) out.tags = tags;
   }
 
   const sv = typeof r.serves === 'string' ? Number(r.serves.trim()) : r.serves;

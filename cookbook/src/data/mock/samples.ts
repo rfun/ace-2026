@@ -33,6 +33,7 @@ export const SAMPLE_RECIPES: Recipe[] = [
     city: 'Salt Lake City',
     origin: 'Punjab, India',
     occasions: ['Diwali'],
+    tags: ['sweet', 'gram flour', 'festival'],
     course: 'sweets',
     dietary: ['vegetarian', 'gluten-free'],
     serves: 8,

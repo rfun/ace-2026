@@ -79,6 +79,13 @@
   .cp-actions .btn { flex: 1 1 100%; }
 }
 
+/* Keywords: removable text chips above the input. Scoped under .cp-tags so nothing else is touched. */
+.cp-ground .cp-tagchips { list-style: none; margin: 4px 0 8px; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.cp-ground .cp-tagchip { display: inline-flex; align-items: center; gap: 2px; min-height: 44px; padding: 0 0 0 12px; font: 700 17px/24px var(--font-typed); color: var(--ink); background: var(--card); border: 2px solid var(--rule); border-radius: 5px; max-width: 100%; }
+.cp-ground .cp-tagchip > span:first-child { overflow-wrap: anywhere; }
+.cp-ground .cp-tagx { min-width: 44px; min-height: 40px; font: 700 20px/1 var(--font-typed); color: var(--ink); background: none; border: 0; cursor: pointer; }
+.cp-ground .cp-tagx:focus-visible { outline: 3px solid var(--ink); outline-offset: -3px; }
+
 /* Import a recipe: a blank index card laid over the top of the form. */
 .cp-ground .cp-import-open { margin: 8px 0 0; }
 .cp-ground .cp-importmsg { margin: 8px 0 0; }

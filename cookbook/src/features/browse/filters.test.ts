@@ -126,3 +126,33 @@ describe('applyFilters text search', () => {
     expect(ids(applyFilters([p, q], { ...EMPTY_FILTERS, authorId: 'x2', text: 'nomatch' }, names))).toEqual([]);
   });
 });
+
+describe('keyword filter', () => {
+  const X = r('X', { tags: ['noodles', 'soup'], course: 'main' });
+  const Y = r('Y', { tags: ['soup'], course: 'dessert' });
+  const Z = r('Z', {}); // no tags key at all (older recipe)
+  const T = [X, Y, Z];
+  // Catches: a recipe without a tags key crashing the filter or text search.
+  it('recipes with no tags are handled', () => {
+    expect(ids(applyFilters(T, { ...EMPTY_FILTERS, tags: ['soup'] }))).toEqual(['X', 'Y']);
+    expect(ids(applyFilters(T, EMPTY_FILTERS))).toEqual(['X', 'Y', 'Z']);
+  });
+  // Catches: AND within the keyword group (would drop Y) instead of OR.
+  it('is OR within the group', () => {
+    expect(ids(applyFilters(T, { ...EMPTY_FILTERS, tags: ['noodles', 'soup'] }))).toEqual(['X', 'Y']);
+    expect(ids(applyFilters(T, { ...EMPTY_FILTERS, tags: ['noodles'] }))).toEqual(['X']);
+  });
+  // Catches: keywords ignoring the other groups instead of ANDing with them.
+  it('is AND across groups', () => {
+    expect(ids(applyFilters(T, { ...EMPTY_FILTERS, tags: ['soup'], courses: ['dessert'] }))).toEqual(['Y']);
+    expect(ids(applyFilters(T, { ...EMPTY_FILTERS, tags: ['soup'], text: 'noodles' }))).toEqual(['X']);
+  });
+  // Catches: tags not part of text search (the council "noodles or soup" request).
+  it('text search matches a keyword that appears nowhere else', () => {
+    expect(ids(applyFilters(T, { ...EMPTY_FILTERS, text: 'NOODLES' }))).toEqual(['X']);
+  });
+  // Catches: selected keywords not counted in the Filters (n) badge.
+  it('counts each selected keyword as an active filter', () => {
+    expect(activeCount({ ...EMPTY_FILTERS, tags: ['a', 'b'], courses: ['main'] })).toBe(3);
+  });
+});

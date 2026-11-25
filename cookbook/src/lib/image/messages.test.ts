@@ -30,7 +30,7 @@ describe('photoErrorMessage', () => {
   });
 
   it('the hint, busy text and picker filter are the specified ones', () => {
-    expect(PHOTO_HINT).toBe('JPG, PNG, WebP or HEIC · up to 20 MB');
+    expect(PHOTO_HINT).toBe('JPG, PNG, WebP or HEIC · up to 20\u00a0MB');
     expect(PHOTO_PREPARING).toBe('Preparing photo…');
     expect(PHOTO_ACCEPT).toContain('.heic');
     expect(PHOTO_ACCEPT).toContain('.heif');

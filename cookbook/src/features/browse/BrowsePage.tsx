@@ -7,6 +7,7 @@ import type { Course, DietaryTag, Me, Person, Recipe, UserId } from '../../domai
 import { activeCount, applyFilters, distinctSorted, EMPTY_FILTERS } from './filters';
 import type { BrowseFilters } from './filters';
 import { clearAuthorHandoff, peekAuthorHandoff } from './authorHandoff';
+import { clearTagHandoff, peekTagHandoff } from './tagHandoff';
 import './browse.css';
 
 type Loaded =
@@ -89,7 +90,10 @@ function AddButton(): JSX.Element {
 export default function BrowsePage(): JSX.Element {
   const store = useStore();
   const [data, setData] = useState<Loaded>({ status: 'loading' });
-  const [filters, setFilters] = useState<BrowseFilters>(() => ({ ...EMPTY_FILTERS, authorId: peekAuthorHandoff() }));
+  const [filters, setFilters] = useState<BrowseFilters>(() => {
+    const tag = peekTagHandoff();
+    return { ...EMPTY_FILTERS, authorId: peekAuthorHandoff(), tags: tag ? [tag] : [] };
+  });
   const [open, setOpen] = useState(false);
   const seq = useRef(0);
 
@@ -110,6 +114,7 @@ export default function BrowsePage(): JSX.Element {
 
   useEffect(() => {
     clearAuthorHandoff(); // the choice carried from the recipe page has been taken
+    clearTagHandoff();
     void load();
     const unsubscribe = store.subscribe(() => void load());
     return () => {
@@ -172,12 +177,14 @@ export default function BrowsePage(): JSX.Element {
   const authors = distinctSorted(recipes.map((r) => r.authorId)).sort((a, b) => nameOf(a).localeCompare(nameOf(b)));
   const origins = distinctSorted(recipes.map((r) => r.origin));
   const occasions = distinctSorted(recipes.flatMap((r) => r.occasions));
+  const keywords = distinctSorted(recipes.flatMap((r) => r.tags ?? []));
 
   const active: { key: string; label: string; clear: () => void }[] = [
     ...filters.dietary.map((d) => ({ key: `d-${d}`, label: DIETARY[d].label, clear: () => set({ dietary: toggle(filters.dietary, d) }) })),
     ...filters.courses.map((c) => ({ key: `c-${c}`, label: COURSES[c].label, clear: () => set({ courses: toggle(filters.courses, c) }) })),
     ...filters.origins.map((o) => ({ key: `o-${o}`, label: o, clear: () => set({ origins: toggle(filters.origins, o) }) })),
     ...filters.occasions.map((o) => ({ key: `n-${o}`, label: o, clear: () => set({ occasions: toggle(filters.occasions, o) }) })),
+    ...filters.tags.map((t) => ({ key: `k-${t}`, label: t, clear: () => set({ tags: toggle(filters.tags, t) }) })),
     ...(filters.authorId ? [{ key: 'a', label: `From ${nameOf(filters.authorId)}\u2019s kitchen`, clear: () => set({ authorId: undefined }) }] : []),
     ...(filters.text.trim() ? [{ key: 't', label: `“${filters.text.trim()}”`, clear: () => set({ text: '' }) }] : []),
   ];
@@ -233,6 +240,11 @@ export default function BrowsePage(): JSX.Element {
         <Group title="Occasion">
           {occasions.map((o) => (
             <Chip key={o} label={o} on={filters.occasions.includes(o)} onClick={() => set({ occasions: toggle(filters.occasions, o) })} />
+          ))}
+        </Group>
+        <Group title="Keywords">
+          {keywords.map((t) => (
+            <Chip key={t} label={t} on={filters.tags.includes(t)} onClick={() => set({ tags: toggle(filters.tags, t) })} />
           ))}
         </Group>
         <Group title="Contributor">

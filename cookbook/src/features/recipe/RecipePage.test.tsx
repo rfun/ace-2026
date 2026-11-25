@@ -6,6 +6,7 @@ import { createMockStore } from '../../data/mock/mockStore';
 import { SAMPLE_RECIPES, SAMPLE_TIPS } from '../../data/mock/samples';
 import type { Me } from '../../domain/types';
 import { clearAuthorHandoff, peekAuthorHandoff } from '../browse/authorHandoff';
+import { clearTagHandoff, peekTagHandoff } from '../browse/tagHandoff';
 import RecipeScreen from './index';
 
 const ID = 'r-besan-ladoo';
@@ -273,3 +274,32 @@ describe('load failures and sequencing', () => {
     clearAuthorHandoff();
   });
 });
+
+describe('RecipePage keywords', () => {
+  // Catches: tags not shown on the card, or shown as colour stamps (which carry meaning).
+  it('shows the tags as plain text chips in a Keywords list, not as stamps', async () => {
+    setup(reader);
+    const list = await screen.findByRole('list', { name: 'Keywords' });
+    expect(Array.from(list.querySelectorAll('button')).map((b) => b.textContent)).toEqual(['sweet', 'gram flour', 'festival']);
+    expect(list.querySelector('.stamp')).toBeNull();
+  });
+
+  // Catches: an empty Keywords list rendered for recipes without tags.
+  it('renders no Keywords list for a recipe without tags', async () => {
+    setup(reader, 'r-example-empanadas');
+    await screen.findByRole('heading', { level: 1 });
+    expect(screen.queryByRole('list', { name: 'Keywords' })).toBeNull();
+  });
+
+  // Catches: clicking a tag not opening browse filtered to it.
+  it('clicking a tag hands it to browse and navigates there', async () => {
+    setup(reader);
+    await screen.findByRole('heading', { level: 1 });
+    window.location.hash = '#/recipe/' + ID;
+    fireEvent.click(screen.getByRole('button', { name: 'gram flour' }));
+    expect(peekTagHandoff()).toBe('gram flour');
+    expect(window.location.hash).toBe('#/');
+    clearTagHandoff();
+  });
+});
+
