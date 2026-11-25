@@ -2,8 +2,8 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { useStore } from '../../data/StoreProvider';
 import type { Me, Photo, Tip } from '../../domain/types';
 import { PHOTO_ACCEPT, PHOTO_HINT, PHOTO_PREPARING, photoErrorMessage } from '../../lib/image/messages';
-import { preparePhoto } from '../../lib/image/prepare';
 import { penFor } from '../recipe/pens';
+import { usePhotoPicker } from './usePhotoPicker';
 import './tips.css';
 
 export const TIP_MAX_CHARS = 600;
@@ -15,16 +15,10 @@ export function TipComposer({ recipeId, onDone, onCancel }: TipComposerProps): J
   const uid = useId();
   const [me, setMe] = useState<Me | null>(null);
   const [text, setText] = useState('');
-  /** The photo after checking, HEIC conversion and resizing: what gets uploaded. */
-  const [file, setFile] = useState<Blob | null>(null);
-  const [preparing, setPreparing] = useState(false);
-  const [preview, setPreview] = useState<string | null>(null);
-  const [alt, setAlt] = useState('');
+  const { file, preparing, preview, alt, setAlt, photoError, setPhotoError, fileRef, pickFile, removePhoto } = usePhotoPicker();
   const [busy, setBusy] = useState(false);
   const [textError, setTextError] = useState('');
-  const [photoError, setPhotoError] = useState('');
   const [confirming, setConfirming] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
   const areaRef = useRef<HTMLTextAreaElement>(null);
   const alive = useRef(true);
 
@@ -38,10 +32,6 @@ export function TipComposer({ recipeId, onDone, onCancel }: TipComposerProps): J
   }, [store]);
 
   useEffect(() => { if (me?.canWrite) areaRef.current?.focus(); }, [me]);
-
-  useEffect(() => () => {
-    if (preview && typeof URL.revokeObjectURL === 'function') URL.revokeObjectURL(preview);
-  }, [preview]);
 
   if (!me) return <div className="tips-composer" aria-busy="true"><p className="tips-note">Getting the pen…</p></div>;
 
@@ -64,39 +54,6 @@ export function TipComposer({ recipeId, onDone, onCancel }: TipComposerProps): J
   function requestCancel() {
     if (text.length > 0) setConfirming(true);
     else onCancel();
-  }
-
-  async function pickFile(f: File | null) {
-    setPhotoError('');
-    if (!f) return;
-    setFile(null);
-    setPreview(null);
-    setPreparing(true);
-    try {
-      const ready = await preparePhoto(f);
-      if (!alive.current) return;
-      setFile(ready);
-      let url: string | null = null;
-      try {
-        if (typeof URL.createObjectURL === 'function') url = URL.createObjectURL(ready);
-      } catch {
-        url = null; // the preview is a nicety; never let it block attaching the photo
-      }
-      setPreview(url);
-    } catch (err) {
-      if (alive.current) setPhotoError(photoErrorMessage(err));
-      if (fileRef.current) fileRef.current.value = '';
-    } finally {
-      if (alive.current) setPreparing(false);
-    }
-  }
-
-  function removePhoto() {
-    setFile(null);
-    setPreview(null);
-    setAlt('');
-    setPhotoError('');
-    if (fileRef.current) fileRef.current.value = '';
   }
 
   async function submit() {

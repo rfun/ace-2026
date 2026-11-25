@@ -3,11 +3,14 @@ import type { MouseEvent } from 'react';
 import { formatHash, navigate } from '../../app/router';
 import { useStore } from '../../data/StoreProvider';
 import { COURSES, DIETARY, stockClass } from '../../domain/tags';
-import type { Me, Person, Photo, Recipe, Tip, UserId } from '../../domain/types';
+import { applyShelfState } from '../../domain/stats';
+import type { MadeNote, Me, Person, Recipe, RecipeStats, Shelf, Tip, UserId } from '../../domain/types';
 import { setAuthorHandoff } from '../browse/authorHandoff';
 import { setTagHandoff } from '../browse/tagHandoff';
+import { MADE_COMPOSER_ID, MadeSection, NO_STATS, ShelfButtons, adjustStats, consumeMadeComposerRequest, shelfStateOf } from '../made';
 import { TipComposer } from '../tips';
 import { penFor } from './pens';
+import { Snapshot } from './Snapshot';
 import ServingsControl from './ServingsControl';
 import { useServings } from './useServings';
 import './recipe.css';
@@ -16,7 +19,7 @@ type Loaded =
   | { status: 'loading' }
   | { status: 'missing' }
   | { status: 'error' }
-  | { status: 'ready'; recipe: Recipe; tips: Tip[]; people: Record<UserId, Person>; me: Me };
+  | { status: 'ready'; recipe: Recipe; tips: Tip[]; made: MadeNote[]; shelf: Shelf; stats: RecipeStats; people: Record<UserId, Person>; me: Me };
 
 function formatMinutes(total: number): string {
   if (total < 60) return `${total} min`;
@@ -28,14 +31,6 @@ function formatMinutes(total: number): string {
 function goBrowse(e: MouseEvent): void {
   e.preventDefault();
   navigate({ name: 'browse' });
-}
-
-function Snapshot(props: { photo: Photo; className: string }): JSX.Element {
-  return (
-    <figure className={`snap ${props.className}`}>
-      <img src={props.photo.url} alt={props.photo.alt} loading="lazy" />
-    </figure>
-  );
 }
 
 function BackTab(): JSX.Element {
@@ -102,13 +97,22 @@ export default function RecipePage(props: { id: string; onAddTip?: () => void })
     setComposing(false);
     setJustAdded(null);
     async function load(): Promise<Loaded> {
-      const [recipe, tips, me] = await Promise.all([store.getRecipe(id), store.listTips(id), store.me()]);
+      // Notes, shelf and counts are extras: if one fails the card still opens without it.
+      const [recipe, tips, me, made, shelf, allStats] = await Promise.all([
+        store.getRecipe(id),
+        store.listTips(id),
+        store.me(),
+        store.listMade(id).catch((): MadeNote[] => []),
+        store.myShelf().catch((): Shelf => ({ want: [], made: [] })),
+        store.stats().catch((): Record<string, RecipeStats> => ({})),
+      ]);
       // A hidden recipe is as good as gone for anyone who cannot moderate.
       if (!recipe || (recipe.hidden && !me.canModerate)) return { status: 'missing' };
       const shownTips = tips.filter((t) => me.canModerate || !t.hidden);
-      const ids = Array.from(new Set([recipe.authorId, ...shownTips.map((t) => t.authorId)]));
+      const shownMade = made.filter((n) => me.canModerate || !n.hidden);
+      const ids = Array.from(new Set([recipe.authorId, ...shownTips.map((t) => t.authorId), ...shownMade.map((n) => n.authorId)]));
       const people = await store.people(ids);
-      return { status: 'ready', recipe, tips: shownTips, people, me };
+      return { status: 'ready', recipe, tips: shownTips, made: shownMade, shelf, stats: allStats[id] ?? NO_STATS, people, me };
     }
     const run = () => {
       const mine = ++seq.current;
@@ -136,6 +140,15 @@ export default function RecipePage(props: { id: string; onAddTip?: () => void })
     reload.current();
   }, []);
 
+  // Kitchen mode's "Made it? Tell us how it went" lands here: scroll to the composer and focus it.
+  useEffect(() => {
+    if (data.status !== 'ready' || !consumeMadeComposerRequest()) return;
+    const form = document.getElementById(MADE_COMPOSER_ID);
+    if (!form) return;
+    if (typeof form.scrollIntoView === 'function') form.scrollIntoView({ block: 'center' });
+    form.querySelector('textarea')?.focus();
+  }, [data.status]);
+
   useEffect(() => {
     if (!composing && refocusAdd.current) {
       refocusAdd.current = false;
@@ -146,6 +159,20 @@ export default function RecipePage(props: { id: string; onAddTip?: () => void })
   function closeComposer(): void {
     refocusAdd.current = true;
     setComposing(false);
+  }
+
+  function onMadePosted(note: MadeNote): void {
+    // Posting also puts the recipe on the Made it shelf; show that now, ahead of the store's refresh.
+    setData((prev) => {
+      if (prev.status !== 'ready' || prev.made.some((n) => n.id === note.id)) return prev;
+      const was = shelfStateOf(prev.shelf, prev.recipe.id);
+      return {
+        ...prev,
+        made: [...prev.made, note],
+        shelf: applyShelfState(prev.shelf, prev.recipe.id, 'made'),
+        stats: adjustStats(prev.stats, was, 'made'),
+      };
+    });
   }
 
   function onTipDone(tip: Tip): void {
@@ -204,7 +231,7 @@ export default function RecipePage(props: { id: string; onAddTip?: () => void })
     );
   }
 
-  const { recipe, tips, people, me } = data;
+  const { recipe, tips, made, shelf, stats, people, me } = data;
   const authorName = people[recipe.authorId]?.name ?? 'a colleague';
   const courseLabel = COURSES[recipe.course]?.label ?? recipe.course;
   const teamCity = [recipe.team, recipe.city].filter(Boolean).join(', ');
@@ -247,6 +274,7 @@ export default function RecipePage(props: { id: string; onAddTip?: () => void })
           </p>
           {teamCity && <p className="rc-line">{teamCity}</p>}
           <p className="rc-meta">{meta.join(' · ')}</p>
+          <ShelfButtons recipeId={recipe.id} state={shelfStateOf(shelf, recipe.id)} stats={stats} canWrite={me.canWrite} />
           {recipe.tags && recipe.tags.length > 0 && (
             <ul className="rc-tags" aria-label="Keywords">
               {recipe.tags.map((tag) => (
@@ -320,6 +348,8 @@ export default function RecipePage(props: { id: string; onAddTip?: () => void })
                 ))}
               </ol>
             </section>
+
+            <MadeSection recipeId={recipe.id} notes={made} people={people} me={me} onPosted={onMadePosted} />
           </div>
 
           <section aria-labelledby="rc-h-tips" className="rc-margin">

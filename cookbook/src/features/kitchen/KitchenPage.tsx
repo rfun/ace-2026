@@ -4,6 +4,7 @@ import { formatHash, navigate } from '../../app/router';
 import { useStore } from '../../data/StoreProvider';
 import { stockClass } from '../../domain/tags';
 import type { Recipe } from '../../domain/types';
+import { requestMadeComposer } from '../made';
 import ServingsControl from '../recipe/ServingsControl';
 import { useServings } from '../recipe/useServings';
 import './kitchen.css';
@@ -247,6 +248,19 @@ export default function KitchenPage(props: { id: string }): JSX.Element {
       <>
         <h2 className="kt-title">All done. Enjoy!</h2>
         <p className="kt-text">{recipe.title}</p>
+        <p className="kt-text">
+          <a
+            className="kt-link"
+            href={formatHash({ name: 'recipe', id })}
+            onClick={(e) => {
+              e.preventDefault();
+              requestMadeComposer();
+              navigate({ name: 'recipe', id });
+            }}
+          >
+            Made it? Tell us how it went
+          </a>
+        </p>
       </>
     );
   } else {
