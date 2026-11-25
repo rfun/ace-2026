@@ -8,7 +8,9 @@
 .bw-search-label { font: 700 15px/1 var(--font-typed); }
 .bw-input { font: 400 17px/1.2 var(--font-read); padding: 10px 12px; min-height: 44px; border: 2px solid var(--kraft); border-radius: 4px; background: var(--card); color: var(--ink); flex: 1 1 220px; max-width: 420px; }
 .bw-toggle { display: inline-flex; }
-.bw-course-row { margin-bottom: 12px; }
+.bw-course-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 4px 20px; margin-bottom: 12px; }
+.bw-course-row .bw-group { margin-bottom: 0; }
+.bw-quick { display: none; }
 
 .bw-filters { display: none; background: var(--tin-lo); border: 2px solid var(--kraft); border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; }
 .bw-filters.bw-filters-open { display: block; }
@@ -39,6 +41,9 @@
 .bw-card > .bw-by::after { content: ""; position: absolute; left: 0; right: -8px; top: -6px; bottom: -6px; }
 .bw-card > .bw-by:focus-visible { outline: 3px solid var(--stamp-violet); outline-offset: 0; }
 .bw-meta { font: 700 14px/24px var(--font-typed); color: var(--ink-soft); }
+.bw-card > .bw-badges { display: flex; flex-wrap: wrap; gap: 0 12px; align-items: center; min-height: var(--rule-gap); }
+.bw-badge, .bw-mark { font: 700 14px/var(--rule-gap) var(--font-typed); text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft); }
+.bw-mark { color: var(--ink); text-decoration: underline; }
 .bw-stamps { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
 .bw-stamps .stamp { font-size: 13px; padding: 5px 8px; border-width: 2px; background: var(--stock); }
 
@@ -56,5 +61,7 @@
   .bw-chip, .bw-active-chip { min-height: 44px; }
   .bw-legend { font-size: 15px; }
   .bw-stamps .stamp { font-size: 15px; }
+  .bw-badge, .bw-mark { font-size: 15px; }
+  .bw-quick { display: block; }
   .bw-input { max-width: none; }
 }
