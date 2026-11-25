@@ -1,11 +1,13 @@
 import { PhotoPermissionError, PhotoUploadError } from '../../lib/image/errors';
-import type { Me, Person, Photo, Recipe, RecipeDraft, Tip, UserId } from '../../domain/types';
+import { applyShelfState, computeStats } from '../../domain/stats';
+import type { MadeNote, Me, Person, Photo, Recipe, RecipeDraft, RecipeStats, Shelf, ShelfState, Tip, UserId } from '../../domain/types';
 import type { DataStore } from '../store';
-import { parseHidden, parseRecipe, parseTip, toStoredPhoto, type Hidden } from './parse';
+import { MAX_SHELF_ITEMS, parseHidden, parseMadeNote, parseRecipe, parseShelf, parseTip, toStoredPhoto, type Hidden } from './parse';
 import type { ArtifactRuntime, DbLike } from './runtime';
 
 const MAX_DOC_BYTES = 240 * 1024;
 const MAX_TIP_CHARS = 600;
+const MAX_MADE_CHARS = 600;
 const HIDDEN_PATH = 'moderation/hidden';
 
 type Raw = Record<string, unknown>;
@@ -71,6 +73,16 @@ export function createArtifactStore(rt: ArtifactRuntime): DataStore {
     return { d: db, id: me.id };
   }
 
+  /** One read, one write of shelf/<me>. */
+  async function writeShelf(d: DbLike, me: UserId, recipeId: string, state: ShelfState): Promise<Shelf> {
+    const ref = d.doc(`shelf/${me}`);
+    const snap = await ref.get();
+    const next = applyShelfState(parseShelf(snap.exists ? snap.data() : undefined), recipeId, state);
+    if (next.want.length > MAX_SHELF_ITEMS || next.made.length > MAX_SHELF_ITEMS) throw new Error('too-large');
+    await ref.set({ want: next.want, made: next.made });
+    return next;
+  }
+
   const listeners = new Set<() => void>();
   let closers: Array<() => void> = [];
   const notify = () => listeners.forEach((l) => l());
@@ -81,6 +93,8 @@ export function createArtifactStore(rt: ArtifactRuntime): DataStore {
       closers = [
         db.collection('recipes').onSnapshot(notify, onErr),
         db.collection('tips').onSnapshot(notify, onErr),
+        db.collection('made').onSnapshot(notify, onErr),
+        db.collection('shelf').onSnapshot(notify, onErr),
         db.doc(HIDDEN_PATH).onSnapshot(notify, onErr),
       ];
     } catch (e) {
@@ -169,11 +183,73 @@ export function createArtifactStore(rt: ArtifactRuntime): DataStore {
       return created;
     },
 
-    async setHidden(kind: 'recipe' | 'tip', id: string, hidden: boolean): Promise<void> {
+    async listMade(recipeId: string): Promise<MadeNote[]> {
+      if (!db) return [];
+      const [me, snap, hidden] = await Promise.all([loadMe(), db.collection('made').get(), readHidden(db)]);
+      const out: MadeNote[] = [];
+      for (const doc of snap.docs) {
+        for (const item of rawItems(doc.data())) {
+          const n = parseMadeNote(item, doc.id);
+          if (!n || n.recipeId !== recipeId) continue;
+          if (hidden.made[n.id]) {
+            if (!me.canModerate) continue;
+            n.hidden = true;
+          }
+          out.push(n);
+        }
+      }
+      return out.sort((a, b) => a.createdAt - b.createdAt);
+    },
+
+    async addMade(recipeId: string, note: { text: string; photo?: Photo }): Promise<MadeNote> {
+      const text = typeof note.text === 'string' ? note.text.trim() : '';
+      if (text.length < 1 || text.length > MAX_MADE_CHARS) throw new Error('invalid-made');
+      const { d, id: me } = await requireWriter();
+      const ref = d.doc(`made/${me}`);
+      const snap = await ref.get();
+      const items = [...rawItems(snap.exists ? snap.data() : undefined)];
+      const created: MadeNote = { id: crypto.randomUUID(), recipeId, authorId: me, text, createdAt: Date.now() };
+      if (note.photo) created.photo = note.photo;
+      items.push(jsonClean({ id: created.id, recipeId, text, createdAt: created.createdAt, photo: toStoredPhoto(note.photo) }));
+      assertFits(items);
+      await ref.set({ items });
+      await writeShelf(d, me, recipeId, 'made');
+      return created;
+    },
+
+    async myShelf(): Promise<Shelf> {
+      if (!db) return { want: [], made: [] };
+      const me = await loadMe();
+      if (me.id === '') return { want: [], made: [] };
+      const snap = await db.doc(`shelf/${me.id}`).get();
+      return parseShelf(snap.exists ? snap.data() : undefined);
+    },
+
+    async setShelf(recipeId: string, state: ShelfState): Promise<Shelf> {
+      const { d, id: me } = await requireWriter();
+      return writeShelf(d, me, recipeId, state);
+    },
+
+    async stats(): Promise<Record<string, RecipeStats>> {
+      if (!db) return {};
+      const [notesSnap, shelfSnap, hidden] = await Promise.all([db.collection('made').get(), db.collection('shelf').get(), readHidden(db)]);
+      const notes: MadeNote[] = [];
+      for (const doc of notesSnap.docs) {
+        for (const item of rawItems(doc.data())) {
+          const n = parseMadeNote(item, doc.id);
+          if (n) notes.push(hidden.made[n.id] ? { ...n, hidden: true } : n);
+        }
+      }
+      const shelves: Record<UserId, Shelf> = {};
+      for (const doc of shelfSnap.docs) shelves[doc.id] = parseShelf(doc.data());
+      return computeStats(notes, shelves);
+    },
+
+    async setHidden(kind: 'recipe' | 'tip' | 'made', id: string, hidden: boolean): Promise<void> {
       if (!db) throw new Error('read-only');
       const me = await loadMe();
       if (!me.canModerate) throw new Error('not-moderator');
-      const key = kind === 'recipe' ? 'recipes' : 'tips';
+      const key = kind === 'recipe' ? 'recipes' : kind === 'tip' ? 'tips' : 'made';
       const ref = db.doc(HIDDEN_PATH);
       const snap = await ref.get();
       if (hidden && snap.exists) {
@@ -186,7 +262,7 @@ export function createArtifactStore(rt: ArtifactRuntime): DataStore {
       const current = parseHidden(snap.exists ? snap.data() : undefined);
       if (hidden) current[key][id] = true;
       else delete current[key][id];
-      await ref.set({ recipes: current.recipes, tips: current.tips });
+      await ref.set({ recipes: current.recipes, tips: current.tips, made: current.made });
     },
 
     async uploadPhoto(file: Blob, alt: string): Promise<Photo> {

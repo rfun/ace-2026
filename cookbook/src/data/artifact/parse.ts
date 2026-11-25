@@ -1,5 +1,5 @@
 import { normalizeTags } from '../../domain/types';
-import type { Course, DietaryTag, Ingredient, Photo, Recipe, Step, Tip } from '../../domain/types';
+import type { Course, DietaryTag, Ingredient, MadeNote, Photo, Recipe, Shelf, Step, Tip } from '../../domain/types';
 
 // Everything read from the db is untrusted: guards below rebuild clean objects
 // and drop anything with missing or wrongly typed required fields.
@@ -95,15 +95,46 @@ export function parseTip(raw: unknown, authorId: string): Tip | null {
   return tip;
 }
 
+export function parseMadeNote(raw: unknown, authorId: string): MadeNote | null {
+  if (!isObj(raw)) return null;
+  if (!str(raw.id) || raw.id === '' || !str(raw.recipeId) || !str(raw.text) || !num(raw.createdAt)) return null;
+  const note: MadeNote = { id: raw.id, recipeId: raw.recipeId, authorId, text: raw.text, createdAt: raw.createdAt };
+  const photo = parsePhoto(raw.photo);
+  if (photo) note.photo = photo;
+  return note;
+}
+
+export const MAX_SHELF_ITEMS = 500;
+
+function shelfIds(v: unknown): string[] {
+  if (!Array.isArray(v)) return [];
+  const out: string[] = [];
+  for (const x of v) {
+    if (!str(x) || x === '' || out.includes(x)) continue;
+    out.push(x);
+    if (out.length === MAX_SHELF_ITEMS) break;
+  }
+  return out;
+}
+
+/** Reads a shelf doc defensively: non-string ids and duplicates dropped, each list capped, made wins over want. */
+export function parseShelf(raw: unknown): Shelf {
+  if (!isObj(raw)) return { want: [], made: [] };
+  const made = shelfIds(raw.made);
+  const want = shelfIds(raw.want).filter((id) => !made.includes(id));
+  return { want, made };
+}
+
 export interface Hidden {
   recipes: Record<string, true>;
   tips: Record<string, true>;
+  made: Record<string, true>;
 }
 
 export function parseHidden(raw: unknown): Hidden {
-  const out: Hidden = { recipes: {}, tips: {} };
+  const out: Hidden = { recipes: {}, tips: {}, made: {} };
   if (!isObj(raw)) return out;
-  for (const kind of ['recipes', 'tips'] as const) {
+  for (const kind of ['recipes', 'tips', 'made'] as const) {
     const m = raw[kind];
     if (!isObj(m)) continue;
     for (const [k, v] of Object.entries(m)) if (v === true) out[kind][k] = true;

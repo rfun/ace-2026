@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseRecipe, parseTip } from './parse';
+import { MAX_SHELF_ITEMS, parseHidden, parseMadeNote, parseRecipe, parseShelf, parseTip } from './parse';
 
 const rawRecipe = (mainPhoto?: unknown, stepPhoto?: unknown) => ({
   id: 'r1',
@@ -87,5 +87,66 @@ describe('tags', () => {
   // Catches: an all-invalid list leaving tags: [] behind.
   it('omits tags when nothing valid remains', () => {
     expect(withTags(['', 5]).tags).toBeUndefined();
+  });
+});
+
+describe('parseMadeNote', () => {
+  const ok = { id: 'n1', recipeId: 'r1', text: 'hi', createdAt: 5 };
+  it('stamps the author from the doc id and keeps a valid photo', () => {
+    expect(parseMadeNote({ ...ok, photo: { assetId: 'a1', alt: 'x' } }, 'u9')).toEqual({
+      ...ok, authorId: 'u9', photo: { assetId: 'a1', url: '/_blob/a1', alt: 'x' },
+    });
+  });
+  // Catches: trusting entries with a missing or wrongly typed required field.
+  it.each([
+    ['not an object', 'x'], ['array', []], ['null', null],
+    ['numeric id', { ...ok, id: 1 }], ['empty id', { ...ok, id: '' }],
+    ['missing recipeId', { ...ok, recipeId: undefined }], ['numeric text', { ...ok, text: 3 }],
+    ['string createdAt', { ...ok, createdAt: '5' }], ['NaN createdAt', { ...ok, createdAt: NaN }],
+  ])('drops %s', (_n, raw) => {
+    expect(parseMadeNote(raw, 'u')).toBeNull();
+  });
+  // Catches: an unsafe asset id (path traversal) surviving into a url.
+  it('drops a photo with an unsafe asset id but keeps the note', () => {
+    const n = parseMadeNote({ ...ok, photo: { assetId: '../x', alt: '' } }, 'u');
+    expect(n).not.toBeNull();
+    expect(n?.photo).toBeUndefined();
+  });
+  // Catches: stored hidden/sample/authorId being trusted from the db.
+  it('ignores stored hidden, sample and authorId fields', () => {
+    const n = parseMadeNote({ ...ok, hidden: true, sample: true, authorId: 'spoof' }, 'u');
+    expect(n).toEqual({ ...ok, authorId: 'u' });
+  });
+});
+
+describe('parseShelf', () => {
+  it('reads a clean shelf', () => {
+    expect(parseShelf({ want: ['a'], made: ['b'] })).toEqual({ want: ['a'], made: ['b'] });
+  });
+  // Catches: non-string ids, duplicates and empties surviving.
+  it('drops non-string, empty and duplicate ids', () => {
+    expect(parseShelf({ want: ['a', 1, null, '', 'a', 'b'], made: [{}, 'c', 'c'] })).toEqual({ want: ['a', 'b'], made: ['c'] });
+  });
+  // Catches: a recipe in both lists staying in both.
+  it('keeps a recipe in both lists only on made', () => {
+    expect(parseShelf({ want: ['a', 'b'], made: ['a'] })).toEqual({ want: ['b'], made: ['a'] });
+  });
+  // Catches: an unbounded list being accepted.
+  it('caps each list at 500 entries', () => {
+    const big = Array.from({ length: 600 }, (_, i) => `r${i}`);
+    const s = parseShelf({ want: big, made: big.map((x) => 'm' + x) });
+    expect(MAX_SHELF_ITEMS).toBe(500);
+    expect(s.want).toHaveLength(500);
+    expect(s.made).toHaveLength(500);
+  });
+  it.each([[undefined], [null], ['x'], [[]], [{ want: 'a', made: 5 }]])('returns empty lists for malformed %j', (raw) => {
+    expect(parseShelf(raw)).toEqual({ want: [], made: [] });
+  });
+});
+
+describe('parseHidden made map', () => {
+  it('reads made and tolerates its absence', () => {
+    expect(parseHidden({ recipes: {}, tips: {}, made: { n: true, x: 'yes' } }).made).toEqual({ n: true });
+    expect(parseHidden({ recipes: { r: true } })).toEqual({ recipes: { r: true }, tips: {}, made: {} });
   });
 });

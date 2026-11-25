@@ -188,7 +188,7 @@ describe('moderation', () => {
     await store.setHidden('recipe', 'r2', true);
     expect(rt.docs.get('moderation/hidden')).toEqual({ recipes: { r1: true, r2: true }, tips: { t1: true } });
     await store.setHidden('recipe', 'r1', false);
-    expect(rt.docs.get('moderation/hidden')).toEqual({ recipes: { r2: true }, tips: { t1: true } });
+    expect(rt.docs.get('moderation/hidden')).toEqual({ recipes: { r2: true }, tips: { t1: true }, made: {} });
   });
   // Catches: setHidden overwriting the whole document (losing a concurrent hide) when a merge is available.
   it('setHidden merges the single key with update() when the document exists, without set()', async () => {
@@ -203,7 +203,7 @@ describe('moderation', () => {
     const rt = createFakeRuntime({ canEdit: true });
     await createArtifactStore(rt).setHidden('recipe', 'r5', true);
     expect(rt.setCalls).toEqual(['moderation/hidden']);
-    expect(rt.docs.get('moderation/hidden')).toEqual({ recipes: { r5: true }, tips: {} });
+    expect(rt.docs.get('moderation/hidden')).toEqual({ recipes: { r5: true }, tips: {}, made: {} });
   });
   // Catches: unhide implemented as a merge (which cannot delete a key) or from a stale read.
   it('setHidden unhide re-reads the document and removes only that key', async () => {
@@ -213,7 +213,7 @@ describe('moderation', () => {
     await store.setHidden('recipe', 'a', false);
     rt.docs.set('moderation/hidden', { recipes: { b: true, c: true }, tips: { t: true } }); // another moderator hid c
     await store.setHidden('recipe', 'b', false);
-    expect(rt.docs.get('moderation/hidden')).toEqual({ recipes: { c: true }, tips: { t: true } });
+    expect(rt.docs.get('moderation/hidden')).toEqual({ recipes: { c: true }, tips: { t: true }, made: {} });
   });
   it('ignores malformed moderation doc values', async () => {
     const rt = createFakeRuntime();
@@ -247,20 +247,20 @@ describe('uploadPhoto', () => {
 });
 
 describe('subscribe', () => {
-  it('opens three snapshots once for many subscribers, closes on the last unsubscribe', () => {
+  it('opens five snapshots once for many subscribers, closes on the last unsubscribe', () => {
     const rt = createFakeRuntime();
     const store = createArtifactStore(rt);
     const u1 = store.subscribe(() => {});
     const u2 = store.subscribe(() => {});
-    expect(rt.snapshotCalls()).toBe(3);
-    expect(rt.openListeners()).toBe(3);
+    expect(rt.snapshotCalls()).toBe(5);
+    expect(rt.openListeners()).toBe(5);
     u1();
     u1(); // double-unsubscribe must not close early
-    expect(rt.openListeners()).toBe(3);
+    expect(rt.openListeners()).toBe(5);
     u2();
     expect(rt.openListeners()).toBe(0);
     store.subscribe(() => {});
-    expect(rt.snapshotCalls()).toBe(6);
+    expect(rt.snapshotCalls()).toBe(10);
   });
   it('notifies listeners when data changes', async () => {
     const rt = createFakeRuntime();
@@ -303,5 +303,178 @@ describe('CAPABILITIES', () => {
       expect(r.read).toBeDefined();
       expect(r.write).toBeDefined();
     }
+  });
+});
+
+describe('made notes', () => {
+  const stored = (id: string, recipeId: string, createdAt: number) => ({ id, recipeId, text: id, createdAt });
+
+  it('addMade writes made/<me> and shelf/<me> once each (catches a missing or doubled write)', async () => {
+    const rt = createFakeRuntime({ userId: 'u1' });
+    const note = await createArtifactStore(rt).addMade('r1', { text: '  It worked  ' });
+    expect(rt.setCalls).toEqual(['made/u1', 'shelf/u1']);
+    expect(note).toMatchObject({ recipeId: 'r1', authorId: 'u1', text: 'It worked' });
+    expect(rt.docs.get('shelf/u1')).toEqual({ want: [], made: ['r1'] });
+  });
+  // Catches: posting a made note leaving the recipe on the want list.
+  it('addMade moves the recipe from want to made', async () => {
+    const rt = createFakeRuntime({ userId: 'u1' });
+    rt.docs.set('shelf/u1', { want: ['r1', 'r2'], made: [] });
+    await createArtifactStore(rt).addMade('r1', { text: 'done' });
+    expect(rt.docs.get('shelf/u1')).toEqual({ want: ['r2'], made: ['r1'] });
+  });
+  // Catches: the text cap / empty check being skipped (tips parity), and a write happening before validation.
+  it('addMade rejects empty and over-600 text without writing', async () => {
+    const rt = createFakeRuntime({ userId: 'u1' });
+    const store = createArtifactStore(rt);
+    await expect(store.addMade('r1', { text: '   ' })).rejects.toThrow('invalid-made');
+    await expect(store.addMade('r1', { text: 'x'.repeat(601) })).rejects.toThrow('invalid-made');
+    expect(rt.setCalls).toEqual([]);
+    await expect(store.addMade('r1', { text: 'x'.repeat(600) })).resolves.toBeDefined();
+    expect(rt.setCalls).toEqual(['made/u1', 'shelf/u1']);
+  });
+  // Catches: dropping the photo, or storing a derived url.
+  it('addMade stores only assetId and alt for a photo and reads it back with a derived url', async () => {
+    const rt = createFakeRuntime({ userId: 'u1' });
+    const store = createArtifactStore(rt);
+    await store.addMade('r1', { text: 'pic', photo: { assetId: 'a-1', url: 'blob:x', alt: 'my dal' } });
+    const items = (rt.docs.get('made/u1') as { items: Record<string, unknown>[] }).items;
+    expect(items[0].photo).toEqual({ assetId: 'a-1', alt: 'my dal' });
+    expect((await store.listMade('r1'))[0].photo?.url).toBe('/_blob/a-1');
+  });
+  // Catches: the size guard being missing on the made doc.
+  it('addMade throws too-large when the doc would reach the size cap', async () => {
+    const rt = createFakeRuntime({ userId: 'u1' });
+    rt.docs.set('made/u1', { items: [{ id: 'big', recipeId: 'r', text: 'x'.repeat(250 * 1024), createdAt: 1 }] });
+    await expect(createArtifactStore(rt).addMade('r1', { text: 'more' })).rejects.toThrow('too-large');
+  });
+  it('addMade rejects read-only and signed-out users', async () => {
+    await expect(createArtifactStore(createFakeRuntime({ db: false })).addMade('r', { text: 't' })).rejects.toThrow('read-only');
+    await expect(createArtifactStore(createFakeRuntime({ userId: null })).addMade('r', { text: 't' })).rejects.toThrow('not-signed-in');
+  });
+  // Catches: filtering by the wrong recipe, wrong author stamping, wrong order; and skipping malformed entries.
+  it('listMade returns one recipe, oldest first, stamped with the doc id, skipping bad entries', async () => {
+    const rt = createFakeRuntime();
+    rt.docs.set('made/a', { items: [stored('n2', 'r1', 20), { id: 5 }, stored('x', 'r2', 1)] });
+    rt.docs.set('made/b', { items: [stored('n1', 'r1', 10)] });
+    const out = await createArtifactStore(rt).listMade('r1');
+    expect(out.map((n) => [n.id, n.authorId])).toEqual([['n1', 'b'], ['n2', 'a']]);
+  });
+  // Catches: hidden made notes leaking to non-moderators, or moderators being unable to see them.
+  it('listMade hides moderated notes from members and flags them for moderators', async () => {
+    const seed = (rt: ReturnType<typeof createFakeRuntime>) => {
+      rt.docs.set('made/a', { items: [stored('n1', 'r1', 1), stored('n2', 'r1', 2)] });
+      rt.docs.set('moderation/hidden', { recipes: {}, tips: {}, made: { n1: true } });
+    };
+    const member = createFakeRuntime();
+    seed(member);
+    expect((await createArtifactStore(member).listMade('r1')).map((n) => n.id)).toEqual(['n2']);
+    const mod = createFakeRuntime({ canEdit: true });
+    seed(mod);
+    const all = await createArtifactStore(mod).listMade('r1');
+    expect(all.map((n) => [n.id, n.hidden])).toEqual([['n1', true], ['n2', undefined]]);
+  });
+  it('listMade is empty without a db', async () => {
+    expect(await createArtifactStore(createFakeRuntime({ db: false })).listMade('r1')).toEqual([]);
+  });
+});
+
+describe('shelf', () => {
+  it('myShelf is empty when no doc exists, and reads defensively when it is malformed', async () => {
+    const rt = createFakeRuntime({ userId: 'u1' });
+    const store = createArtifactStore(rt);
+    expect(await store.myShelf()).toEqual({ want: [], made: [] });
+    rt.docs.set('shelf/u1', { want: ['a', 5, 'a'], made: 'nope' });
+    expect(await store.myShelf()).toEqual({ want: ['a'], made: [] });
+  });
+  // Catches: more than one write per change, and a write to someone else's doc.
+  it('setShelf writes only shelf/<me>, once per change, and keeps want and made exclusive', async () => {
+    const rt = createFakeRuntime({ userId: 'u1' });
+    const store = createArtifactStore(rt);
+    expect(await store.setShelf('r1', 'want')).toEqual({ want: ['r1'], made: [] });
+    expect(await store.setShelf('r1', 'made')).toEqual({ want: [], made: ['r1'] });
+    expect(rt.setCalls).toEqual(['shelf/u1', 'shelf/u1']);
+    expect(await store.setShelf('r1', 'none')).toEqual({ want: [], made: [] });
+    expect(rt.docs.get('shelf/u1')).toEqual({ want: [], made: [] });
+  });
+  it('setShelf throws too-large when a list is already at the 500 cap', async () => {
+    const rt = createFakeRuntime({ userId: 'u1' });
+    rt.docs.set('shelf/u1', { want: Array.from({ length: 500 }, (_, i) => `r${i}`), made: [] });
+    await expect(createArtifactStore(rt).setShelf('new', 'want')).rejects.toThrow('too-large');
+  });
+  it('setShelf rejects read-only and signed-out users; myShelf is empty for them', async () => {
+    await expect(createArtifactStore(createFakeRuntime({ db: false })).setShelf('r', 'want')).rejects.toThrow('read-only');
+    await expect(createArtifactStore(createFakeRuntime({ userId: null })).setShelf('r', 'want')).rejects.toThrow('not-signed-in');
+    expect(await createArtifactStore(createFakeRuntime({ userId: null })).myShelf()).toEqual({ want: [], made: [] });
+    expect(await createArtifactStore(createFakeRuntime({ db: false })).myShelf()).toEqual({ want: [], made: [] });
+  });
+});
+
+describe('stats()', () => {
+  // Catches: wrong union of notes and shelves, hidden notes counted, shelf docs of other people ignored.
+  it('counts distinct makers across notes and shelves, skips hidden notes, counts want', async () => {
+    const rt = createFakeRuntime();
+    rt.docs.set('made/a', { items: [{ id: 'n1', recipeId: 'r1', text: 't', createdAt: 1 }] });
+    rt.docs.set('made/b', { items: [{ id: 'n2', recipeId: 'r1', text: 't', createdAt: 1 }] });
+    rt.docs.set('shelf/a', { want: [], made: ['r1'] });
+    rt.docs.set('shelf/c', { want: ['r1', 'r2'], made: [] });
+    rt.docs.set('moderation/hidden', { recipes: {}, tips: {}, made: { n2: true } });
+    expect(await createArtifactStore(rt).stats()).toEqual({
+      r1: { madeBy: 1, wantCount: 1 },
+      r2: { madeBy: 0, wantCount: 1 },
+    });
+  });
+  it('is empty without a db', async () => {
+    expect(await createArtifactStore(createFakeRuntime({ db: false })).stats()).toEqual({});
+  });
+  // Catches: moderators seeing different counts from members.
+  it('gives a moderator the same hidden-excluded counts', async () => {
+    const rt = createFakeRuntime({ canEdit: true });
+    rt.docs.set('made/b', { items: [{ id: 'n2', recipeId: 'r1', text: 't', createdAt: 1 }] });
+    rt.docs.set('moderation/hidden', { recipes: {}, tips: {}, made: { n2: true } });
+    expect(await createArtifactStore(rt).stats()).toEqual({});
+  });
+});
+
+describe('moderation of made notes', () => {
+  // Catches: kind 'made' writing into the tips map.
+  it("setHidden('made') hides in the made map and unhides again, leaving recipes and tips", async () => {
+    const rt = createFakeRuntime({ canEdit: true });
+    rt.docs.set('moderation/hidden', { recipes: { r: true }, tips: { t: true } });
+    const store = createArtifactStore(rt);
+    await store.setHidden('made', 'n1', true);
+    expect(rt.docs.get('moderation/hidden')).toEqual({ recipes: { r: true }, tips: { t: true }, made: { n1: true } });
+    await store.setHidden('made', 'n1', false);
+    expect(rt.docs.get('moderation/hidden')).toEqual({ recipes: { r: true }, tips: { t: true }, made: {} });
+  });
+  // Catches: old moderation docs without `made` failing to load.
+  it('an old moderation doc without made still hides recipes', async () => {
+    const rt = createFakeRuntime();
+    rt.docs.set('moderation/hidden', { recipes: { r1: true }, tips: { t1: true } });
+    rt.docs.set('recipes/a', { items: [storedRecipe('r1', 1), storedRecipe('r2', 2)] });
+    expect((await createArtifactStore(rt).listRecipes()).map((r) => r.id)).toEqual(['r2']);
+  });
+  it('setHidden made rejects non-moderators', async () => {
+    await expect(createArtifactStore(createFakeRuntime()).setHidden('made', 'n', true)).rejects.toThrow('not-moderator');
+  });
+});
+
+describe('CAPABILITIES made and shelf rules', () => {
+  // Catches: a missing or mistyped rule leaving the new collections unwritable or world-writable.
+  it('contains the four new rules and keeps the existing ones', () => {
+    const rules = CAPABILITIES.db.rules as readonly { path: string; read?: string; write?: string }[];
+    const want = [
+      { path: 'made', read: 'view', write: 'admin' },
+      { path: 'made/{self}', read: 'view', write: 'interact' },
+      { path: 'shelf', read: 'view', write: 'admin' },
+      { path: 'shelf/{self}', read: 'view', write: 'interact' },
+      { path: 'recipes', read: 'view', write: 'admin' },
+      { path: 'recipes/{self}', read: 'view', write: 'interact' },
+      { path: 'tips', read: 'view', write: 'admin' },
+      { path: 'tips/{self}', read: 'view', write: 'interact' },
+      { path: 'moderation', read: 'view', write: 'admin' },
+    ];
+    for (const w of want) expect(rules).toContainEqual(w);
+    expect(rules).toHaveLength(want.length);
   });
 });

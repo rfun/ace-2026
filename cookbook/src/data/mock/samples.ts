@@ -1,4 +1,4 @@
-import type { Person, Recipe, Tip } from '../../domain/types';
+import type { MadeNote, Person, Recipe, Shelf, Tip, UserId } from '../../domain/types';
 
 /** Clearly-fake sample data. Every person name ends in "Example". */
 export const SAMPLE_PEOPLE: Person[] = [
@@ -160,3 +160,21 @@ export const SAMPLE_TIPS: Tip[] = [
     sample: true,
   },
 ];
+
+export const SAMPLE_MADE: MadeNote[] = [
+  {
+    id: 'm-ladoo-1',
+    recipeId: 'r-besan-ladoo',
+    authorId: 'u-jordan',
+    text: 'Made these for a team lunch. I found 10 minutes of roasting was plenty on my stove.',
+    createdAt: T0 + 6 * DAY,
+    sample: true,
+  },
+];
+
+/** Each person's Want-to-make / Made-it lists, keyed by person. The signed-in sample user starts with one of each. */
+export const SAMPLE_SHELVES: Record<UserId, Shelf> = {
+  'u-you': { want: ['r-example-congee'], made: [] },
+  'u-sam': { want: ['r-example-empanadas'], made: ['r-besan-ladoo'] },
+  'u-lee': { want: ['r-example-congee'], made: [] },
+};

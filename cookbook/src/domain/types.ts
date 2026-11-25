@@ -19,6 +19,13 @@ export interface Recipe {
 }
 export type RecipeDraft = Omit<Recipe, 'id' | 'authorId' | 'createdAt' | 'updatedAt'>;
 export interface Tip { id: string; recipeId: string; authorId: UserId; text: string; photo?: Photo; createdAt: number; hidden?: boolean; sample?: boolean }
+/** An "I made this" note: separate from a Tip, so a recipe can show how many people made it. Text is 1..600 chars. */
+export interface MadeNote { id: string; recipeId: string; authorId: UserId; text: string; photo?: Photo; createdAt: number; hidden?: boolean; sample?: boolean }
+/** One person's recipe ids: deduped, and a recipe is never in both lists (made wins over want). */
+export interface Shelf { want: string[]; made: string[] }
+export type ShelfState = 'want' | 'made' | 'none';
+/** madeBy: distinct people with a visible made note or the recipe on their made shelf. wantCount: people with it on want. */
+export interface RecipeStats { madeBy: number; wantCount: number }
 export interface Person { id: UserId; name: string }
 export interface Me { id: UserId; canWrite: boolean; canModerate: boolean }
 

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createMockStore } from './mockStore';
-import type { Me, Recipe, RecipeDraft, Tip } from '../../domain/types';
+import type { MadeNote, Me, Recipe, RecipeDraft, Tip } from '../../domain/types';
 
 const base = { origin: 'Nowhere', occasions: [], course: 'main', dietary: [], story: 's', ingredients: [], steps: [] } as const;
 const recipe = (id: string, authorId: string, extra: Partial<Recipe> = {}): Recipe => ({
@@ -163,5 +163,76 @@ describe('defaults and uploadPhoto', () => {
     } finally {
       URL.createObjectURL = original;
     }
+  });
+});
+
+describe('made notes and shelf', () => {
+  const made = (id: string, recipeId: string, authorId: string, extra: Partial<MadeNote> = {}): MadeNote => ({
+    id, recipeId, authorId, text: id, createdAt: 1, ...extra,
+  });
+  const fresh = (me: Me = user, extra: Parameters<typeof createMockStore>[0] = {}) =>
+    createMockStore({ me, recipes: [], tips: [], made: [], shelves: {}, ...extra });
+
+  // Catches: addMade leaving the recipe on want, or not adding it to made.
+  it('addMade moves the recipe from want to made and returns the note authored by me', async () => {
+    const s = fresh(user, { shelves: { 'u-you': { want: ['r1', 'r2'], made: [] } } });
+    const n = await s.addMade('r1', { text: ' done ' });
+    expect(n).toMatchObject({ recipeId: 'r1', authorId: 'u-you', text: 'done' });
+    expect(await s.myShelf()).toEqual({ want: ['r2'], made: ['r1'] });
+    expect((await s.listMade('r1')).map((x) => x.id)).toEqual([n.id]);
+  });
+  it('addMade rejects empty and over-600 text', async () => {
+    const s = fresh();
+    await expect(s.addMade('r1', { text: ' ' })).rejects.toThrow('invalid-made');
+    await expect(s.addMade('r1', { text: 'x'.repeat(601) })).rejects.toThrow('invalid-made');
+  });
+  // Catches: hidden notes shown to members / hidden from moderators / wrong recipe / wrong order.
+  it('listMade filters by recipe and hidden, oldest first', async () => {
+    const notes = [made('b', 'r1', 'x', { createdAt: 2 }), made('a', 'r1', 'x', { createdAt: 1 }), made('h', 'r1', 'x', { hidden: true }), made('o', 'r2', 'x')];
+    expect((await fresh(user, { made: notes }).listMade('r1')).map((n) => n.id)).toEqual(['a', 'b']);
+    expect((await fresh(mod, { made: notes }).listMade('r1')).map((n) => n.id).sort()).toEqual(['a', 'b', 'h']);
+  });
+  // Catches: shelf states overlapping, and setShelf returning stale data.
+  it('setShelf keeps want and made exclusive and none clears', async () => {
+    const s = fresh();
+    expect(await s.setShelf('r1', 'want')).toEqual({ want: ['r1'], made: [] });
+    expect(await s.setShelf('r1', 'made')).toEqual({ want: [], made: ['r1'] });
+    expect(await s.setShelf('r1', 'none')).toEqual({ want: [], made: [] });
+  });
+  // Catches: stats not combining my own shelf with others', or counting hidden notes.
+  it('stats counts distinct makers and wanters and ignores hidden notes', async () => {
+    const s = fresh(user, {
+      made: [made('n1', 'r1', 'u-a'), made('n2', 'r1', 'u-b', { hidden: true })],
+      shelves: { 'u-a': { want: [], made: ['r1'] }, 'u-c': { want: ['r1'], made: [] } },
+    });
+    await s.setShelf('r1', 'want');
+    expect((await s.stats()).r1).toEqual({ madeBy: 1, wantCount: 2 });
+  });
+  // Catches: moderators unable to hide a made note, members able to.
+  it('setHidden made requires a moderator and removes the note from stats', async () => {
+    const notes = [made('n1', 'r1', 'x')];
+    await expect(fresh(user, { made: notes }).setHidden('made', 'n1', true)).rejects.toThrow('forbidden');
+    const s = fresh(mod, { made: notes });
+    await s.setHidden('made', 'n1', true);
+    expect((await s.listMade('r1'))[0].hidden).toBe(true);
+    expect(await s.stats()).toEqual({});
+  });
+  // Catches: persisted state from before this feature crashing, and shelf changes not persisting.
+  it('persists the shelf and loads an old saved state without made or shelves', async () => {
+    const s1 = createMockStore({ me: user, persist: true, recipes: [], tips: [], made: [], shelves: {} });
+    await s1.setShelf('r1', 'want');
+    expect(await createMockStore({ me: user, persist: true }).myShelf()).toEqual({ want: ['r1'], made: [] });
+    window.localStorage.setItem('ace-culture-cookbook:mock-store:v1', JSON.stringify({ recipes: [], tips: [], counter: 0 }));
+    const old = createMockStore({ me: user, persist: true });
+    expect(await old.myShelf()).toEqual({ want: [], made: [] });
+    expect(await old.stats()).toEqual({});
+  });
+  // Catches: dev seeds missing, so the UI has nothing to show.
+  it('default seed has a made note on a sample recipe and a shelf for the signed-in user', async () => {
+    const s = createMockStore();
+    expect((await s.listMade('r-besan-ladoo')).length).toBeGreaterThan(0);
+    const shelf = await s.myShelf();
+    expect(shelf.want.length + shelf.made.length).toBeGreaterThan(0);
+    expect((await s.stats())['r-besan-ladoo'].madeBy).toBeGreaterThan(0);
   });
 });
